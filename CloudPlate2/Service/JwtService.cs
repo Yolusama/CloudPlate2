@@ -1,0 +1,36 @@
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.IdentityModel.Tokens;
+
+
+namespace CloudPlate2.Service;
+
+public class JwtService
+{
+    private readonly JwtConfig config;
+
+    public JwtService(JwtConfig config)
+    {
+        this.config = config;
+    }
+
+    public string GenerateToken(string userId)
+    {
+        var claims = new[]
+        {
+            new Claim(ClaimTypes.Name, userId)
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Key));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: config.Issuer,
+            audience: config.Audience,
+            claims: claims,
+            expires: DateTime.Now.AddDays(Constants.TokenExpire.TotalDays),
+            signingCredentials: credentials);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
