@@ -14,7 +14,7 @@ public class JwtService
         this.config = config;
     }
 
-    public string GenerateToken(string userId)
+    public string GenerateToken(string userId,TimeSpan expire)
     {
         var claims = new[]
         {
@@ -28,7 +28,7 @@ public class JwtService
             issuer: config.Issuer,
             audience: config.Audience,
             claims: claims,
-            expires: DateTime.Now.AddDays(Constants.TokenExpire.TotalDays),
+            expires: DateTime.Now.AddDays(expire.TotalDays),
             signingCredentials: credentials);
 
         return new JwtSecurityTokenHandler().WriteToken(token);

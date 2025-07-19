@@ -32,8 +32,8 @@ namespace Functional
                 Console.WriteLine(toWriteMsg);
             if(FolderPath != null)
             {
-                string path = Path.Combine(FolderPath, $"app_{DateTime.Now.ToString("yyyy-MM-dd")}.log");
-                using FileStream stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Write);
+                string path = Path.Combine(FolderPath, $"app-{DateTime.Now.ToString("yyyy-MM-dd")}.log");
+                using FileStream stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.ReadWrite);
                 stream.Write(Encoding.UTF8.GetBytes(toWriteMsg+'\n'));
             }
             Console.ResetColor();
