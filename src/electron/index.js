@@ -1,14 +1,33 @@
-const { app, BrowserWindow } = require('electron');
-const path = require('path');
+const { app, BrowserWindow,ipcMain } = require('electron');
+const  { join } = require('path');
 
 let mainWindow;
 
+function assignEvents(){
+ ipcMain.on('minimize', () => {
+    mainWindow.minimize();
+  });
+
+  ipcMain.on('maximize', (event, arg) => {
+    if (arg.maximized) {
+      mainWindow.maximize();
+    } else {
+      mainWindow.unmaximize();
+    }
+  });
+
+  ipcMain.on('close', () => {
+    mainWindow.close();
+  });
+}
+
 function createWindow() {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+  win = new BrowserWindow({
+    width: 1000,
+    height: 720,
+    frame: false,
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'), // 预加载脚本
+      preload: join(__dirname, 'preload.js'), // 预加载脚本
       contextIsolation: true, // 启用上下文隔离
       nodeIntegration: false, // 禁用 Node.js 集成（安全推荐）
     },
@@ -16,13 +35,15 @@ function createWindow() {
 
   // 加载 Vite 开发的 React 页面
   if (process.env.NODE_ENV === 'development') {
-    mainWindow.loadURL('http://localhost:8085');
-    mainWindow.webContents.openDevTools();
+    win.loadURL('http://localhost:8085');
+    //mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
+    win.loadFile(join(__dirname, '../dist/index.html'));
   }
-
-  mainWindow.on('closed', () => mainWindow = null);
+ 
+  win.on('closed', () => mainWindow = null);
+  mainWindow = win;
+  assignEvents();
 }
 
 app.whenReady().then(createWindow);

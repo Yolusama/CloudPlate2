@@ -1,15 +1,18 @@
 import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import electron from 'vite-plugin-electron';
+import react from '@vitejs/plugin-react'; 
+import electron from 'vite-plugin-electron/simple';
 
 export default defineConfig({
   plugins: [
     react(),
     electron({
-      entry: 'electron/index.js', // Electron 主进程入口文件
-    }),
+      main: {
+        entry: 'src/electron/index.js'
+      }
+    })
   ],
   server: {
     port: 8085
-  }
+  },
+  base:"./",
 });

@@ -1,0 +1,15 @@
+#tool-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  width: 30vw;
+  height: 45px;
+  position: sticky;
+  top: 0;
+  right: 0;
+}
+
+#tool-btn .btn:hover {
+  background: rgba(0, 0, 0, 0.1);
+}

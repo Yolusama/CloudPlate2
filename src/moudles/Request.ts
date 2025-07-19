@@ -1,5 +1,4 @@
 import axios, { AxiosError,type AxiosRequestConfig,type AxiosResponse } from "axios";
-import { ElMessage } from "element-plus";
 
 const baseUrl = "http://localhost:5725";
 
@@ -30,10 +29,7 @@ export async function RequestAsync(url:string,type:string,data:any,headers:Recor
 }
 
 const defaultFailCallback = (error:AxiosError)=>{
-  ElMessage({
-    message:error.message,
-    type:"error"
-  });
+  console.log(error);
 }
 
 export interface Result{
@@ -51,6 +47,31 @@ export function Request(url:string,type:string,data:any,headers:Record<string,an
   option.headers = headers;
   option.method = type;
   axios.request(option).then(successCallback).catch(failCallback);
+}
+
+export function Get(url:string,headers:Record<string,any>,successCallback:(response:AxiosResponse)=>void
+    ,failCallback=defaultFailCallback){
+  Request(url,"get",null,headers,successCallback,failCallback);
+}
+
+export function Post(url:string,data:any,headers:Record<string,any>,successCallback:(response:AxiosResponse)=>void
+    ,failCallback=defaultFailCallback){
+  Request(url,"post",data,headers,successCallback,failCallback);
+}
+
+export function Put(url:string,data:any,headers:Record<string,any>,successCallback:(response:AxiosResponse)=>void
+    ,failCallback=defaultFailCallback){
+  Request(url,"put",data,headers,successCallback,failCallback);
+}
+
+export function Delete(url:string,headers:Record<string,any>,successCallback:(response:AxiosResponse)=>void
+    ,failCallback=defaultFailCallback){
+  Request(url,"delete",null,headers,successCallback,failCallback);
+}
+
+export function Patch(url:string,data:any,headers:Record<string,any>,successCallback:(response:AxiosResponse)=>void
+    ,failCallback=defaultFailCallback){
+  Request(url,"patch",data,headers,successCallback,failCallback);
 }
 
 export async function GetAsync(url:string, config:AxiosRequestConfig) {
