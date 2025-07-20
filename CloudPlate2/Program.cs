@@ -12,6 +12,8 @@ global using Functional;
 global using Functional.Util;
 global using CloudPlate2.Service;
 global using CloudPlate2.Service.DB;
+global using FreeSql;
+global using FreeSql.MySql;
 using CloudPlate2.ExceptionHandler;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;

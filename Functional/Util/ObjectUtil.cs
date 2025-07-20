@@ -9,7 +9,7 @@ public static class ObjectUtil
     /// </summary>
     /// <param name="source"></param>
     /// <param name="target"></param>
-    public static void CopyProperties(this object source, object target)
+    public static void CopyProperties(this object target, object source)
     {
         Type targetType = target.GetType();
         Type sourceType = source.GetType();
@@ -34,7 +34,7 @@ public static class ObjectUtil
     /// </summary>
     /// <param name="source"></param>
     /// <param name="target"></param>
-    public static void CopyFields(this object source, object target)
+    public static void CopyFields(this object target, object source)
     {
         Type targetType = target.GetType();
         Type sourceType = source.GetType();

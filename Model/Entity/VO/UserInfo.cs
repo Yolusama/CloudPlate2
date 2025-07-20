@@ -1,4 +1,4 @@
-﻿namespace Model.DTO;
+﻿namespace Model.Entity.VO;
 
 public class UserInfo
 {

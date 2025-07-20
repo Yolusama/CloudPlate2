@@ -39,11 +39,11 @@ public class EmailService
             
             smtpClient.Send(mailMessage);
 
-            Console.WriteLine("邮件发送成功！");
+            KLoggerInstance.Instance.Info($"邮件已成功发送至{emailTo}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"邮件发送失败: {ex.Message}");
+           KLoggerInstance.Instance.Error($"邮件发送失败: {ex}");
         }
     }
 }

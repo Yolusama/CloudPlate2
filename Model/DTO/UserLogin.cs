@@ -1,4 +1,4 @@
-﻿namespace Model.Entity.VO;
+﻿namespace Model.DTO;
 
 public record UserLogin(string Identifier, string Password, string CheckCode, string CheckCodeLength,
-    bool rememberPassword);
+    bool RememberPassword);

@@ -73,7 +73,7 @@ public static class RandomGenerator
                 template = table.Where(char.IsUpper);
         }
         else
-            template = table.Where(c=>!char.IsLetterOrDigit(c));
+            template = table.Where(c=>!char.IsDigit(c));
         for (int i = 0; i < count; i++)
         {
             int index = R.Next(0,template.Count());
