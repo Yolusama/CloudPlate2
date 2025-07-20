@@ -1,8 +1,8 @@
 import axios, { AxiosError,type AxiosRequestConfig,type AxiosResponse } from "axios";
+import stateStroge from "./StateStorage";
+import {Route} from "../moudles/Route";
 
-const baseUrl = "http://localhost:5725";
-
-export const webSocketUrl = "ws://localhost:5726/ws";
+const baseUrl = "http://localhost:5435";
 
 axios.defaults.baseURL = baseUrl;
 
@@ -29,6 +29,19 @@ export async function RequestAsync(url:string,type:string,data:any,headers:Recor
 }
 
 const defaultFailCallback = (error:AxiosError)=>{
+  const code = parseInt(error.code == undefined ? "0" : error.code);
+  switch(code){
+    case 401:
+      Route.dive("/401");
+      break;
+    case 404:
+      Route.dive("/404");
+      break;
+    case 500:
+      Route.dive("/500");
+      break;  
+  }
+
   console.log(error);
 }
 
@@ -93,5 +106,18 @@ export async function DeleteAsync(url:string,config:AxiosRequestConfig)
 
 export async function PatchAsync(url:string,data:any,config:AxiosRequestConfig){
   return  (await axios.patch(url,data,config)).data;
+}
+
+export function Authorization(isFormData:boolean = false) {
+  const token = stateStroge.get("token");
+  if(isFormData) {
+    return {
+      "Content-Type": "multipart/form-data",
+      Authorization: `Bearer ${token}`
+    };
+  }
+  return {
+    Authorization: `Bearer ${token}`
+  };
 }
 

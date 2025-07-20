@@ -1,10 +1,11 @@
 import { useState,useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './css/App.css'
 import { Navigate, Route, Routes } from 'react-router'
 import { Login } from './views/User/Login'
 import { Register } from './views/User/Register'
+import { Unauthorized } from './views/Error/401'
+import { NotFound } from './views/Error/404'
+import { InternalServerError } from './views/Error/500'
 
 
 function App() {
@@ -21,6 +22,10 @@ function App() {
       <Route path="/" element={<Navigate to="/Login" replace /> } />
       <Route path="/Login" element={<Login />} />
       <Route path="/Register" element={<Register />} />
+      <Route path="/401" element={<Unauthorized />} />
+      <Route path="/404" element={<NotFound />} />
+      <Route path="/500" element={<InternalServerError />} />
+      {/* Add more routes as needed */}
     </Routes>
 
 
