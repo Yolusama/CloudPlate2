@@ -30,18 +30,28 @@ public class CommonController : ControllerBase
         if (res == string.Empty)
             return Result.Fail("验证码已过期！");
         emailService.Send(email,"验证码",$@"<html><body>
-           <h3>这是本次登录的验证码{res},请在五分钟内使用！</h3> </body></html>");
-        return Ok(Result.OK("验证码生成成功！"));
+           <h3>这是本次登录/注册/验证行为的验证码{res},请在五分钟内使用！</h3> </body></html>");
+        return Result.OK("验证码生成成功！");
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<Result<string>>> GetRandomStr()
+    {
+        int count = RandomGenerator.R.Next(6, 21);
+        string res = await Task.Run(()=>RandomGenerator.GenerateByTable(count));
+        return Result.OK<string>(res);
     }
     
     private string GetCheckCode(int count, string email, RedisCache redis)
     {
         string checkCode = RandomGenerator.GenerateNumberStr(count);
-        string key = $"{email}_{checkCode}_{count}";
-        TimeSpan expire = redis.GetExpire(key);
+        string key = $"{email}_{Constants.CheckCodeKey}_{count}";
+        string intervalKey = $"{email}_CheckCodeInterval";
+        TimeSpan expire = redis.GetExpire(intervalKey);
         if (expire == TimeSpan.Zero) return string.Empty;
         if (expire == Constants.GetCheckCodeInterval) return null;
-
+        redis.Set(key,checkCode,Constants.CheckCodeExpire);
+        redis.Set(intervalKey,true,Constants.GetCheckCodeInterval);
         return checkCode;
     }
 }

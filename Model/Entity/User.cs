@@ -20,7 +20,9 @@ public class User
     public string Nickname { get; set; }
     [Column(DbType = "varchar(100)",IsNullable = false)]
     public string UserAvatar { get; set; }
-    public DateTime LastLoginTime { get; set; }
+    [Column(IsNullable = true,DbType = "datetime")]
+    public DateTime? LastLoginTime { get; set; }
+    [Column(IsNullable = true,DbType = "datetime")]
     public DateTime RegisterTime { get; set; }
     [Column(DbType = "tinyint(1)",InsertValueSql = "1")]
     public bool Status { get; set; }

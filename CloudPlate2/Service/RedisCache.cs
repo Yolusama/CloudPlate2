@@ -32,9 +32,13 @@ public class RedisCache
 
    public TimeSpan GetExpire(string key)
    {
-      DateTime? expire = Database.KeyExpireTime(key);
-      if(expire == null) return TimeSpan.Zero;
-      return TimeSpan.FromTicks(expire.Value.Ticks - DateTime.Now.Ticks);
+      if (KeyExists(key))
+      {
+         DateTime? expire = Database.KeyExpireTime(key);
+         if (expire == null) return TimeSpan.Zero;
+         return TimeSpan.FromTicks(expire.Value.Ticks - DateTime.Now.Ticks);
+      }
+      return TimeSpan.MinValue;
    }
 
    public bool KeyExists(string key)

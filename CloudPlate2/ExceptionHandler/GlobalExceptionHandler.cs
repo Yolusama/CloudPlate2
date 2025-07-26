@@ -12,7 +12,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         httpContext.Response.ContentType = "application/json";
         await httpContext.Response.WriteAsJsonAsync(Result.ServerError,cancellationToken);
         
-        Console.Error.WriteLine(exception);
+       KLoggerInstance.Instance.Error($"出现异常: {exception}");
 
         return false;
     }

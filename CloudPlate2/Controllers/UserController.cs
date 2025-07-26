@@ -49,7 +49,8 @@ public class UserController : ControllerBase
             return Result.Fail("验证码错误或者已过期！").Generics<string>();
         if (res == string.Empty)
             return Result.Fail("注册失败！").Generics<string>();
+        if(res == "邮箱已被注册！")
+           return Result.Fail(res).Generics<string>();
         return Ok(Result.OK("注册成功！",res));
     }
-    
 }

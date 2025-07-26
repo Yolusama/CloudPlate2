@@ -44,10 +44,10 @@ builder.Services.AddScoped<RedisCache>();
 builder.Services.AddSingleton<IFreeSql>(provider=>
 {
     string connectionString = builder.Configuration.GetValue<string>("MySql:Connection");
-    IFreeSql fsql = new FreeSql.FreeSqlBuilder()
-        .UseConnectionString(FreeSql.DataType.MySql,connectionString)
+    IFreeSql fsql = new FreeSqlBuilder()
+        .UseConnectionString(DataType.MySql,connectionString)
         .UseAdoConnectionPool(true)
-        .UseMonitorCommand(cmd => Console.WriteLine($"Sql Sentence：{cmd.CommandText}"))
+        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"执行sql语句：{cmd.CommandText}"))
         .UseAutoSyncStructure(true) //自动同步实体结构到数据库，只有CRUD时才会生成表
         .Build();
     fsql.CodeFirst.IsAutoSyncStructure = true;
@@ -118,6 +118,7 @@ builder.Services.AddAuthentication(options =>
     });
 builder.Services.AddSingleton<JwtConfig>(builder.Configuration.GetSection("Jwt").Get<JwtConfig>());
 builder.Services.AddSingleton<EmailConfig>(builder.Configuration.GetSection("Email").Get<EmailConfig>());
+builder.Services.AddSingleton<FileService>(provider => new FileService(builder.Configuration["Resource:FileRootPath"]));
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<UserService>();
@@ -130,18 +131,19 @@ var app = builder.Build();
     app.UseSwaggerUI();
 }*/
 
-app.UseHttpsRedirection();
-
-app.UseAuthentication();
-app.UseAuthorization();
-
 app.UseStaticFiles(new StaticFileOptions()
 {
-     RequestPath = builder.Configuration["Resource:Image:Patten"],
-     FileProvider = new PhysicalFileProvider(builder.Configuration["Resource:Image:Path"])
+    RequestPath = builder.Configuration["Resource:Image:Patten"],
+    FileProvider = new PhysicalFileProvider(builder.Configuration["Resource:Image:Path"])
 });
 
 app.UseCors();
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

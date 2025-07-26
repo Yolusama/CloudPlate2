@@ -13,7 +13,7 @@ public static class RandomGenerator
     {
         StringBuilder sb = new StringBuilder();
         sb.Append(R.Next(1, 10));
-        for (int i = 1; i <= count; i++) 
+        for (int i = 1; i < count; i++) 
           sb.Append(R.Next(1, 10));
         return sb.ToString();
     }
@@ -44,7 +44,7 @@ public static class RandomGenerator
     {
         StringBuilder sb = new StringBuilder();
         sb.Append(R.Next(1, 10));
-        int count = R.Next(8, 13);
+        int count = R.Next(8, 12);
         for (int i = 0; i < count; i++)
             sb.Append(R.Next(0,10));
         return sb.ToString();

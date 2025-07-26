@@ -17,33 +17,26 @@ public class EmailService
         string smtpServer = config.SmtpServer; // SMTP服务器地址
         int smtpPort = config.SmtpPort; // 通常587是TLS端口，465是SSL端口
 
-        try
+        var mailMessage = new MailMessage
         {
-            var mailMessage = new MailMessage
-            {
-                From = new MailAddress(config.Host),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = true // 设置为false发送纯文本
-            };
+            From = new MailAddress(config.Host),
+            Subject = subject,
+            Body = body,
+            IsBodyHtml = true // 设置为false发送纯文本
+        };
 
-            mailMessage.To.Add(emailTo);
-            
-            using var smtpClient = new SmtpClient(smtpServer)
-            {
-                Port = smtpPort,
-                Credentials = new NetworkCredential(config.Host,config.AuthorizationCode),
-                EnableSsl = true, // 大多数现代SMTP服务器需要SSL
-                DeliveryMethod = SmtpDeliveryMethod.Network
-            };
-            
-            smtpClient.Send(mailMessage);
+        mailMessage.To.Add(emailTo);
 
-            KLoggerInstance.Instance.Info($"邮件已成功发送至{emailTo}");
-        }
-        catch (Exception ex)
+        using var smtpClient = new SmtpClient(smtpServer)
         {
-           KLoggerInstance.Instance.Error($"邮件发送失败: {ex}");
-        }
+            Port = smtpPort,
+            Credentials = new NetworkCredential(config.Host, config.AuthorizationCode),
+            EnableSsl = true, // 大多数现代SMTP服务器需要SSL
+            DeliveryMethod = SmtpDeliveryMethod.Network
+        };
+
+        smtpClient.Send(mailMessage);
+
+        KLoggerInstance.Instance.Info($"邮件已成功发送至{emailTo}");
     }
 }
