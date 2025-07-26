@@ -1,28 +1,42 @@
-const { app, BrowserWindow,ipcMain } = require('electron');
-const  { join } = require('path');
+const { app, BrowserWindow, ipcMain } = require('electron');
+const { join } = require('path');
 
 let mainWindow;
 
-function assignEvents(){
- ipcMain.on('minimize', () => {
+function Size(x, y) {
+  this.x = x;
+  this.y = y;
+}
+
+function assignEvents() {
+  ipcMain.on('minimize', () => {
     mainWindow.minimize();
   });
 
   ipcMain.on('maximize', (event, arg) => {
-    if (arg.maximized) {
-      mainWindow.maximize();
-    } else {
-      mainWindow.unmaximize();
-    }
+      mainWindow.setFullScreen(arg.maximized);
   });
 
   ipcMain.on('close', () => {
     mainWindow.close();
+    mainWindow.destroy();
+  });
+
+  ipcMain.on("setLoginWindowState", () => {
+    mainWindow.setSize(720, 480);
+    mainWindow.setResizable(false);
+    mainWindow.center();
+  });
+
+  ipcMain.on("setHomeSizeState", () => {
+    mainWindow.setSize(1000,720);
+    mainWindow.setResizable(true);
+    mainWindow.center();
   });
 }
 
 function createWindow() {
-  win = new BrowserWindow({
+  const win = new BrowserWindow({
     width: 1000,
     height: 720,
     frame: false,
@@ -38,9 +52,9 @@ function createWindow() {
     win.loadURL('http://localhost:8085');
     //mainWindow.webContents.openDevTools();
   } else {
-    win.loadFile(join(__dirname, '../dist/index.html'));
+    win.loadFile('../dist/index.html');
   }
- 
+
   win.on('closed', () => mainWindow = null);
   mainWindow = win;
   assignEvents();
@@ -52,6 +66,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 
-app.on('activate', () => {
+/*app.on('activate', () => {
   if (mainWindow === null) createWindow();
-});
+});*/

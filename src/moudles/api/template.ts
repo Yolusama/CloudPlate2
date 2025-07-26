@@ -6,14 +6,15 @@ export function ApiTemplate(url: string, headers: Record<string, any>, type: str
     successCallback: ((result: Result) => void) | null = null, feedback:MessageInstance|NotificationInstance | null = null,failCallback:(()=>void)|null = null) {
     Request(url, type, data, headers, response => {
         const res = response.data;
-        if (!res.succeeded) {
+        if (!res.ok) {
             if(failCallback != null) 
                 failCallback();
             if(feedback == null){
                 console.error(`API request failed: ${res.message}`);
-                return;
             }
-            feedback.error(res.message);
+            else 
+                feedback.error(res.message);
+            return;
         }
         if (successCallback != null)
             successCallback({ message: res.message, data: res.data });

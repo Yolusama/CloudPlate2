@@ -1,9 +1,15 @@
-import { Button, Checkbox, Form, Input, Select, Space } from "antd";
+import { Button, Checkbox, Form, Input, Select, Image } from "antd";
 import { ToolBtn } from "../../../components/ToolBtn";
 import { useEffect, useState } from "react";
 import stateStroge from "../../../moudles/StateStorage";
 import { DefaultOptionType } from "antd/es/select";
 import { CheckCodeInput } from "../../../components/CheckCodeInput";
+import "../../../css/Login.css";
+import { Register } from "../Register";
+import useMessage from "antd/es/message/useMessage";
+import { CommonApi, UserApi } from "../../../moudles/api";
+import { Route } from "../../../moudles/Route";
+import { LoginModel } from "../../../moudles/api/types";
 
 type LoginProps = {
     identifier?: string;
@@ -11,11 +17,12 @@ type LoginProps = {
     checkCode?: string;
     remember?: boolean;
     useCheckCode?: boolean;
-    hasGotCode?: boolean;
+    showRegister?: boolean;
 }
 
 export function Login() {
-    const [state, setState] = useState<LoginProps>();
+    const [state, setState] = useState<LoginProps>({useCheckCode:false});
+    const [messageApi, contextHolder] = useMessage();
     const options: DefaultOptionType[] = [];
     const checkCodeMaxlength = 4;
 
@@ -27,19 +34,25 @@ export function Login() {
             });
             setState({ ...state, identifier: accounts[0].value });
         }
-        const remember = stateStroge.get("remember");
-        if (remember !== undefined)
+        const remember = stateStroge.get("rememberPassword");
+        if (remember != undefined)
+         {
             setState({ ...state, remember: remember });
-        const encryptedPassword = stateStroge.get("password");
-        if (encryptedPassword !== undefined)
-            setState({ ...state, password: encryptedPassword });
+            if(state?.remember)
+                CommonApi.getRandomStr(res=>setState({...state,password:res.data}));
+        }
 
-        window.electron?.send("SetLoginWindowState", {});
+
+
+        window.electron?.send("setLoginWindowState", {});
+        setState({
+            ...state, showRegister: false
+        })
     }, []);
 
     function identifierComponent() {
         if (options.length === 0)
-            return <Input placeholder="请输入账号" value={state?.identifier}
+            return <Input placeholder="账号/电子邮箱" value={state?.identifier}
                 onInput={e => setState({ ...state, identifier: e.currentTarget.value.replace(/\s/g, "") })} />;
         return <Select
             options={options}
@@ -55,23 +68,40 @@ export function Login() {
     function loginPassComponent() {
         if (!state?.useCheckCode) {
             return (
-                <Input.Password placeholder="密码" value={state?.password}
+                <Input.Password placeholder="密码" value={state?.password} maxLength={20}
                     onInput={e => setState({ ...state, password: e.currentTarget.value.replace(/\s/g, "") })}></Input.Password>
             );
         }
 
         return (
-            <CheckCodeInput count={checkCodeMaxlength} value={state?.checkCode} email={state.identifier}
+            <CheckCodeInput count={checkCodeMaxlength} value={state?.checkCode} email={state?.identifier}
                 onValueChange={value => setState({ ...state, checkCode: value })} />
         )
     }
 
-    function login() { }
+    function login() {
+        const model: LoginModel = { identifier: state?.identifier, passowrd: state?.password, checkCode: state?.checkCode };
+        function afterLogin(data: any) {
+            stateStroge.set("user", data);
+            stateStroge.set("rememberPassword", state?.remember);
+            Route.switch("/Home");
+        }
+        if (!state?.useCheckCode)
+            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi);
+        else
+            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi);
+    }
+    function goRegister() {
+        setState({ ...state, showRegister: true });
+
+    }
     return (
         <>
+            {contextHolder}
             <ToolBtn maximizable={false} />
-            <div id="login">
-                <Form >
+            {!state?.showRegister && <div id="login" >
+                <Image src="src/assets/login.gif" width={400} height={220} style={{ marginTop:"15px", borderRadius: "7px" }}></Image>
+                <Form style={{ width: "60%", marginTop: "22px" }} className="no-drag">
                     <Form.Item>
                         {identifierComponent()}
                     </Form.Item>
@@ -81,10 +111,14 @@ export function Login() {
                     <Form.Item>
                         <Checkbox checked={state?.remember} onChange={e => setState({ ...state, remember: e.target.checked })}>记住密码</Checkbox>
                         <Checkbox checked={state?.useCheckCode} onChange={e => setState({ ...state, useCheckCode: e.target.checked })}>使用验证码登录</Checkbox>
+                    </Form.Item>
+                    <Form.Item>
                         <Button type="primary" onClick={login}>登录</Button>
+                        <Button type="default" onClick={goRegister} style={{ marginLeft: "2%" }}>注册</Button>
                     </Form.Item>
                 </Form>
-            </div>
+            </div>}
+            {state?.showRegister && <Register onHide={() => setState({ ...state, showRegister: false })} />}
         </>
     );
 }

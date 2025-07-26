@@ -18,8 +18,11 @@ export function ToolBtn({ maximizable }: ToolBtnProps) {
     }
 
     function maximize() {
-        window.electron?.send("maximize", {maxized: state.maximized});
-        setState({ maximized: !state.maximized });
+        if(!state.maximized)
+           setState({...state, maximized: true });
+        else
+           setState({...state, maximized: false });
+        window.electron?.send("maximize", {maximized: state.maximized});
     }
 
     function toggleMaximize() {
@@ -31,7 +34,7 @@ export function ToolBtn({ maximizable }: ToolBtnProps) {
     }
 
     return (
-        <div id="tool-btn">
+        <div id="tool-btn" className="no-drag">
             <MinusOutlined onClick={minimize} className="btn" />
             {maximizable && toggleMaximize()}
             <CloseOutlined onClick={close} className="btn" />

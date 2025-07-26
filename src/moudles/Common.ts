@@ -1,3 +1,4 @@
+import { JSX } from "react";
 
 
 export function copy(src: any, to: any) {
@@ -84,3 +85,15 @@ export function getFileSize(fileSize:number){
 }
 
 export const ADayMills = 1000*60*60*24;
+
+export function reactFor(data:any[],elementFun:(item:any)=>JSX.Element){
+   return data.map(e=>elementFun(e));
+}
+
+export function reactKeyValuesFor(data:Record<string,any>,elementFunc:(item:any)=>JSX.Element)
+{
+    const res:JSX.Element[] = [];
+    for(let pro in data)
+        res.push(elementFunc(data[pro]));
+    return res;    
+}

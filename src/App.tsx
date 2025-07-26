@@ -1,32 +1,33 @@
-import { useState,useEffect } from 'react'
+import {  useEffect } from 'react'
 import './css/App.css'
 import { Navigate, Route, Routes } from 'react-router'
 import { Login } from './views/User/Login'
-import { Register } from './views/User/Register'
 import { Unauthorized } from './views/Error/401'
 import { NotFound } from './views/Error/404'
 import { InternalServerError } from './views/Error/500'
+import { Home } from './views/Home'
 
 
 function App() {
- //const [count, setCount] = useState(0)
+  //const [count, setCount] = useState(0)
 
   useEffect(() => {
-     console.log(window.electron);
+    console.log(window.electron);
     // This effect runs once when the component mounts
   }, [])
 
   return (
     <>
-    <Routes>
-      <Route path="/" element={<Navigate to="/Login" replace /> } />
-      <Route path="/Login" element={<Login />} />
-      <Route path="/Register" element={<Register />} />
-      <Route path="/401" element={<Unauthorized />} />
-      <Route path="/404" element={<NotFound />} />
-      <Route path="/500" element={<InternalServerError />} />
-      {/* Add more routes as needed */}
-    </Routes>
+      <Routes>
+        <Route path="/" element={<Navigate to="/Login" replace />} />
+        <Route path="/Login" element={<Login />} />
+        <Route path="/Home" element={<Home />} >
+        </Route>
+        <Route path="/401" element={<Unauthorized />} />
+        <Route path="/404" element={<NotFound />} />
+        <Route path="/500" element={<InternalServerError />} />
+        {/* Add more routes as needed */}
+      </Routes>
 
 
 
@@ -41,7 +42,7 @@ function App() {
 
 
 
-  {/* Uncomment the following lines to display logos and a button
+      {/* Uncomment the following lines to display logos and a button
       <div>
         <a href="https://vite.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />

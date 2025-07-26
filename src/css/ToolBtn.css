@@ -2,12 +2,11 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 20px;
-  width: 30vw;
-  height: 45px;
-  position: sticky;
+  width: 8vw;
+  height: 30px;
+  position: absolute;
   top: 0;
-  right: 0;
+  right: 10px;
 }
 
 #tool-btn .btn:hover {

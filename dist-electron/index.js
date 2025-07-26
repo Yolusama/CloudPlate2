@@ -1,9 +1,31 @@
 "use strict";
-const { app, BrowserWindow } = require("electron");
+const { app, BrowserWindow, ipcMain } = require("electron");
 const { join } = require("path");
 let mainWindow;
+function assignEvents() {
+  ipcMain.on("minimize", () => {
+    mainWindow.minimize();
+  });
+  ipcMain.on("maximize", (event, arg) => {
+    mainWindow.setFullScreen(arg.maximized);
+  });
+  ipcMain.on("close", () => {
+    mainWindow.close();
+    mainWindow.destroy();
+  });
+  ipcMain.on("setLoginWindowState", () => {
+    mainWindow.setSize(720, 480);
+    mainWindow.setResizable(false);
+    mainWindow.center();
+  });
+  ipcMain.on("setHomeSizeState", () => {
+    mainWindow.setSize(1e3, 720);
+    mainWindow.setResizable(true);
+    mainWindow.center();
+  });
+}
 function createWindow() {
-  mainWindow = new BrowserWindow({
+  const win = new BrowserWindow({
     width: 1e3,
     height: 720,
     frame: false,
@@ -17,16 +39,15 @@ function createWindow() {
     }
   });
   if (process.env.NODE_ENV === "development") {
-    mainWindow.loadURL("http://localhost:8085");
+    win.loadURL("http://localhost:8085");
   } else {
-    mainWindow.loadFile(join(__dirname, "../dist/index.html"));
+    win.loadFile("../dist/index.html");
   }
-  mainWindow.on("closed", () => mainWindow = null);
+  win.on("closed", () => mainWindow = null);
+  mainWindow = win;
+  assignEvents();
 }
 app.whenReady().then(createWindow);
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
-});
-app.on("activate", () => {
-  if (mainWindow === null) createWindow();
 });

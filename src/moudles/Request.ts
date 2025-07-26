@@ -29,7 +29,7 @@ export async function RequestAsync(url:string,type:string,data:any,headers:Recor
 }
 
 const defaultFailCallback = (error:AxiosError)=>{
-  const code = parseInt(error.code == undefined ? "0" : error.code);
+  const code = error.status == undefined ? "0" : error.status;
   switch(code){
     case 401:
       Route.dive("/401");
@@ -119,5 +119,40 @@ export function Authorization(isFormData:boolean = false) {
   return {
     Authorization: `Bearer ${token}`
   };
+}
+
+function toDownload(blob:Blob,fileName:string){
+    const data = new Blob([blob]);
+    const downloadUrl = URL.createObjectURL(data);
+    const anchor = document.createElement('a');
+    anchor.href = downloadUrl;
+    anchor.download = fileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+}
+
+export function DownloadFile(url:string,fileName:string){
+   axios.get(url,{
+    responseType:"blob",
+    headers: Authorization()
+   })
+   .then(response=>{
+    const res = response.data;
+    toDownload(res.data,fileName);
+   }).catch(defaultFailCallback);
+}
+
+export async function DownloadFileAsync(url:string,fileName:string) {
+  try{
+    const res = await axios.get(url,{
+    responseType:"blob",
+    headers: Authorization()
+   });
+   toDownload(res.data,fileName);
+  }
+  catch(e){
+     defaultFailCallback(e as AxiosError);
+  }
 }
 
