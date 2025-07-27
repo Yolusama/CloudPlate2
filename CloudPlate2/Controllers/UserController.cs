@@ -28,8 +28,6 @@ public class UserController : ControllerBase
         return Ok(Result.OK(res));
     }
 
- 
-
     [HttpPost]
     public ActionResult<Result<UserInfo>> CheckCodeLogin([FromBody] UserLogin model)
     {

@@ -3,6 +3,7 @@ global using Model;
 global using Model.Entity;
 global using Model.Common;
 global using Model.Entity.VO;
+global using Model.Entity.Enum;
 global using Model.DTO;
 global using StackExchange.Redis;
 global using CloudPlate2.Service;
@@ -14,10 +15,13 @@ global using CloudPlate2.Service;
 global using CloudPlate2.Service.DB;
 global using FreeSql;
 global using FreeSql.MySql;
+global using CloudPlate2.Expansion;
 using CloudPlate2.ExceptionHandler;
+using CloudPlate2.Filter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
+using FileInfo = Model.Entity.FileInfo;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -65,13 +69,11 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
         builder.Property(f=>f.CreateTime).DbType("datetime").IsNullable(false)
             .InsertValueSql(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
         builder.Property(f => f.FileCover).DbType("varchar(50)")
-            .InsertValueSql("default-cover.png");
+            .IsNullable(false);
         builder.Property(f => f.FileName).DbType("varchar(50)").IsNullable(false);
         builder.Property(f=>f.FileSize).DbType("bigint").IsNullable(false);
-        builder.Property(f=>f.IsFolder).DbType("tinyint(1)").IsNullable(false);
         builder.Property(f => f.RecycleTime).DbType("datetime");
         builder.Property(f => f.RecoverTime).DbType("datetime");
-        builder.Property(f => f.UserId).DbType("varchar(16)");
         builder.Property(f => f.Type).DbType("tinyint(1)");
         builder.Property(f=>f.UpdateTime).DbType("datetime");
     });
@@ -91,6 +93,7 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
           builder.Index("Index_Status","Status");
           builder.Property(t => t.FinishTime).DbType("datetime");
     });
+    //FreeSqlExpansion.FreeSql = fsql;
     return fsql;
 });
 
@@ -122,6 +125,8 @@ builder.Services.AddSingleton<FileService>(provider => new FileService(builder.C
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<FileInfoService>();
+builder.Services.AddScoped<ClearRedisCacheFilter>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

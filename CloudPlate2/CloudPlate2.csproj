@@ -15,10 +15,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Expansion\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Compile Remove="Controllers\WeatherForecastController.cs" />
       <Compile Remove="Service\DB.cs" />
     </ItemGroup>

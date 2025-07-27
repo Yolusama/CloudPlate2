@@ -80,7 +80,7 @@ public class UserService
         user.Password = StringEncrypt.Encrypt(password);
         user.CurrentSpace = 0L;
         user.TotalSpace = 20L * Constants.GB;
-        user.UserAvatar = Constants.DefaultAvatar;
+        user.Avatar = Constants.DefaultAvatar;
         user.Nickname = nickName;
         user.RegisterTime = DateTime.Now;
         user.LastLoginTime = null;

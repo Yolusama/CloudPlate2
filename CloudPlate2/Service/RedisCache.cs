@@ -30,6 +30,13 @@ public class RedisCache
       Set(key, value, expire);
    }
 
+   public async Task<T?> GetAsync<T>(string key)
+   {
+      string json = await Database.StringGetAsync(key);
+      if (string.IsNullOrEmpty(json)) return default;
+      return JsonSerializer.Deserialize<T>(json);
+   }
+
    public TimeSpan GetExpire(string key)
    {
       if (KeyExists(key))

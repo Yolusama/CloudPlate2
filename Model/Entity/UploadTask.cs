@@ -7,7 +7,7 @@ public class UploadTask
     public int Total { get; set; }
     public string Md5 { get; set; }
     public string CreateTime { get; set; }
-    public string FinishTime { get; set; }
+    public DateTime? FinishTime { get; set; }
     public bool Status { get; set; }
     public string UserId { get; set; }
 }
