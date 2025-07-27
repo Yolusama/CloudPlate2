@@ -8,22 +8,22 @@ import { type RegisterModel,type LoginModel } from "./types";
 
 export class UserApi{
     static login(model:LoginModel,remberPassword?:boolean,successCallback:((result:Result)=>void)|null = null,
-        feedback:MessageInstance|NotificationInstance|null = null){
+        feedback:MessageInstance|NotificationInstance|null = null,failCallback:(()=>void)|null = null){
          PostTemplate("/Api/User/Login",{
             identifier: model.identifier,
             password: model.passowrd,
             remberPassword: remberPassword
-        },{},successCallback,feedback);
+        },{},successCallback,feedback,failCallback);
     }
 
     static register(model:RegisterModel,successCallback:((result:Result)=>void)|null = null,
-        feedback:MessageInstance|NotificationInstance|null = null){
-        PostTemplate("/Api/User/Register",model,{},successCallback,feedback);
+        feedback:MessageInstance|NotificationInstance|null = null,failCallback:(()=>void)|null = null){
+        PostTemplate("/Api/User/Register",model,{},successCallback,feedback,failCallback);
     }
 
     static checkCodeLogin(model:LoginModel,successCallback:((result:Result)=>void)|null = null,
-        feedback:MessageInstance|NotificationInstance|null = null){
-            PostTemplate("/Api/User/CheckCodeLogin",model,{},successCallback,feedback);
+        feedback:MessageInstance|NotificationInstance|null = null,failCallback:(()=>void)|null = null){
+            PostTemplate("/Api/User/CheckCodeLogin",model,{},successCallback,feedback,failCallback);
         }  
 }
 

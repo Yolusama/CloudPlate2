@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, Spin } from "antd";
 import "../../../css/Register.css";
 import React, { useEffect, useState } from "react";
 import { CheckCodeInput } from "../../../components/CheckCodeInput";
@@ -13,6 +13,7 @@ interface RegisterProps {
     checkCode?: string;
     hasGotCode?: boolean;
     disabled?: boolean
+    loading?:boolean;
 }
 
 interface RegisterOutPros {
@@ -24,10 +25,11 @@ export function Register(pros: RegisterOutPros) {
     const [messageApi, contextHolder] = useMessage();
 
     useEffect(() => {
-        setState({ ...state, disabled: false });
+        setState({ ...state, disabled: false,loading:false });
     }, [])
 
     function register() {
+        setState({...state,loading:true});
         UserApi.register({
             nickName: state?.nickname,
             email: state?.email,
@@ -40,7 +42,7 @@ export function Register(pros: RegisterOutPros) {
                 back(null);
                 clearTimeout(timer);
             }, 10000);
-        }, messageApi);
+        }, messageApi,()=>setState({...state,loading:false}));
     }
 
     function back(e: React.MouseEvent | null) {
@@ -51,6 +53,7 @@ export function Register(pros: RegisterOutPros) {
 
     return (
         <>
+            <Spin spinning={state?.loading} fullscreen={true} tip="注册中..." />
             {contextHolder}
             <div className="back no-drag"  >
                 <ArrowLeftOutlined className="icon" onClick={e => back(e)} />

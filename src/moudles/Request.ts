@@ -10,12 +10,12 @@ export function createCancelToken(){
   return axios.CancelToken.source();
 }
 
-export function imgSrc(imgName:string){
-   return `${baseUrl}/img/${imgName}`;
+export function userAvatar(imgName:string){
+   return `${baseUrl}/img/avatar/${imgName}`;
 }
 
-export function fileSrc(fileName:string){
-  return `${baseUrl}/file/${fileName}`;
+export function fileCover(fileName:string){
+  return `${baseUrl}/img/cover/${fileName}`;
 }
 
 export async function RequestAsync(url:string,type:string,data:any,headers:Record<string,any>){

@@ -6,11 +6,11 @@ export interface ToolBtnProps {
     maximizable: boolean;
 }
 
-export function ToolBtn({ maximizable }: ToolBtnProps) {
+export function ToolBtn(props: ToolBtnProps) {
     const [state, setState] = useState({ maximized: false });
-    
+
     function minimize() {
-        window.electron?.send("minimize",{});
+        window.electron?.send("minimize", {});
     }
 
     function close() {
@@ -18,25 +18,28 @@ export function ToolBtn({ maximizable }: ToolBtnProps) {
     }
 
     function maximize() {
-        if(!state.maximized)
-           setState({...state, maximized: true });
-        else
-           setState({...state, maximized: false });
-        window.electron?.send("maximize", {maximized: state.maximized});
+        if (!state.maximized) {
+            setState({ maximized: true });
+            window.electron?.send("maximize", { maximized: true });
+        }
+        else {
+            setState({ maximized: false });
+            window.electron?.send("maximize", { maximized: false });
+        }
     }
 
     function toggleMaximize() {
         return (<>
-            {state.maximized ? 
-            <FullscreenExitOutlined onClick={maximize} className="btn" /> 
-            : <FullscreenOutlined onClick={maximize} className="btn" />}
+            {state.maximized ?
+                <FullscreenExitOutlined onClick={maximize} className="btn" />
+                : <FullscreenOutlined onClick={maximize} className="btn" />}
         </>)
     }
 
     return (
         <div id="tool-btn" className="no-drag">
             <MinusOutlined onClick={minimize} className="btn" />
-            {maximizable && toggleMaximize()}
+            {props.maximizable && toggleMaximize()}
             <CloseOutlined onClick={close} className="btn" />
         </div>
     );

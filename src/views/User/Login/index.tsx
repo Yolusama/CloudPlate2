@@ -1,4 +1,4 @@
-import { Button, Checkbox, Form, Input, Select, Image } from "antd";
+import { Button, Checkbox, Form, Input, Select, Image, Spin } from "antd";
 import { ToolBtn } from "../../../components/ToolBtn";
 import { useEffect, useState } from "react";
 import stateStroge from "../../../moudles/StateStorage";
@@ -18,10 +18,11 @@ type LoginProps = {
     remember?: boolean;
     useCheckCode?: boolean;
     showRegister?: boolean;
+    loading?:boolean;
 }
 
 export function Login() {
-    const [state, setState] = useState<LoginProps>({useCheckCode:false});
+    const [state, setState] = useState<LoginProps>({useCheckCode:false,loading:false});
     const [messageApi, contextHolder] = useMessage();
     const options: DefaultOptionType[] = [];
     const checkCodeMaxlength = 4;
@@ -80,6 +81,7 @@ export function Login() {
     }
 
     function login() {
+        setState({...state,loading:true});
         const model: LoginModel = { identifier: state?.identifier, passowrd: state?.password, checkCode: state?.checkCode };
         function afterLogin(data: any) {
             stateStroge.set("user", data);
@@ -87,16 +89,16 @@ export function Login() {
             Route.switch("/Home");
         }
         if (!state?.useCheckCode)
-            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi);
+            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi,()=>setState({...state,loading:false}));
         else
-            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi);
+            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi,()=>setState({...state,loading:false}));
     }
     function goRegister() {
         setState({ ...state, showRegister: true });
-
     }
     return (
         <>
+            <Spin spinning={state?.loading} fullscreen={true} tip="登录中..." />
             {contextHolder}
             <ToolBtn maximizable={false} />
             {!state?.showRegister && <div id="login" >
