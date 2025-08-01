@@ -2,12 +2,11 @@ import { useEffect } from "react";
 import { Outlet } from "react-router";
 import { ToolBtn } from "../../components/ToolBtn";
 import "../../css/Home.css";
-import { type GetProp, Menu, type MenuProps,Image } from "antd";
+import {  Menu, Image } from "antd";
 import { CloudSyncOutlined, HomeOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import stateStroge from "../../moudles/StateStorage";
 import { userAvatar } from "../../moudles/Request";
-
-type MenuItem = GetProp<MenuProps, "items">[number];
+import { type MenuItem } from "../../moudles/api/types";
 
 export function Home() {
     const items:MenuItem[] = [
@@ -45,9 +44,8 @@ export function Home() {
                        <span>{user.nickName}</span>
                     </div>
                     <Menu
-                        style={{ width: 256 }}
-                        defaultSelectedKeys={['1']}
-                        defaultOpenKeys={['sub1']}
+                        style={{ width: 128 }}
+                        defaultSelectedKeys={["main"]}
                         mode="vertical"
                         theme="light"
                         items={items}

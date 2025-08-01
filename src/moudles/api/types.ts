@@ -1,3 +1,5 @@
+import { type GetProp,type MenuProps } from "antd"
+
  export interface RegisterModel{
         email?:string,
         password?:string,
@@ -10,3 +12,17 @@ export type LoginModel = {
     passowrd?:string,
     checkCode?:string
 }
+
+export type FileInfo = {
+    id?:Number,
+    name?:string,
+    cover?:string,
+    pid?:Number,
+    upalodTime?:Date,
+    type?:Number,
+    userId?:string,
+    recycleTime?:Date,
+    recoverTime?:Date
+}
+
+export type MenuItem = GetProp<MenuProps, "items">[number];

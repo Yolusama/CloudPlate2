@@ -18,11 +18,11 @@ type LoginProps = {
     remember?: boolean;
     useCheckCode?: boolean;
     showRegister?: boolean;
-    loading?:boolean;
+    loading?: boolean;
 }
 
 export function Login() {
-    const [state, setState] = useState<LoginProps>({useCheckCode:false,loading:false});
+    const [state, setState] = useState<LoginProps>({ useCheckCode: false, loading: false });
     const [messageApi, contextHolder] = useMessage();
     const options: DefaultOptionType[] = [];
     const checkCodeMaxlength = 4;
@@ -35,15 +35,15 @@ export function Login() {
             });
             setState({ ...state, identifier: accounts[0].value });
         }
-        const remember = stateStroge.get("rememberPassword");
-        if (remember != undefined)
-         {
-            setState({ ...state, remember: remember });
-            if(state?.remember)
-                CommonApi.getRandomStr(res=>setState({...state,password:res.data}));
+        const user = stateStroge.get("user");
+        if (user != undefined) {
+            const remember = stateStroge.get("rememberPassword");
+            if (remember != undefined) {
+                setState({ ...state, remember: remember });
+                if (state?.remember)
+                    setState({ ...state, password: user.pwd });
+            }
         }
-
-
 
         window.electron?.send("setLoginWindowState", {});
         setState({
@@ -81,17 +81,21 @@ export function Login() {
     }
 
     function login() {
-        setState({...state,loading:true});
+        setState({ ...state, loading: true });
         const model: LoginModel = { identifier: state?.identifier, passowrd: state?.password, checkCode: state?.checkCode };
         function afterLogin(data: any) {
             stateStroge.set("user", data);
-            stateStroge.set("rememberPassword", state?.remember);
             Route.switch("/Home");
+            const accounts = [];
+            accounts.push(data.account);
+            if(stateStroge.has("accounts"))
+                accounts.push(...stateStroge.get("accounts"));
+            stateStroge.set("accounts",accounts);
         }
         if (!state?.useCheckCode)
-            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi,()=>setState({...state,loading:false}));
+            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));
         else
-            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi,()=>setState({...state,loading:false}));
+            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));
     }
     function goRegister() {
         setState({ ...state, showRegister: true });
@@ -102,7 +106,7 @@ export function Login() {
             {contextHolder}
             <ToolBtn maximizable={false} />
             {!state?.showRegister && <div id="login" >
-                <Image src="src/assets/login.gif" width={400} height={220} style={{ marginTop:"15px", borderRadius: "7px" }}></Image>
+                <Image src="src/assets/login.gif" width={400} height={220} style={{ marginTop: "15px", borderRadius: "7px" }}></Image>
                 <Form style={{ width: "60%", marginTop: "22px" }} className="no-drag">
                     <Form.Item>
                         {identifierComponent()}
