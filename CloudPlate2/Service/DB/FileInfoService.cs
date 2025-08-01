@@ -10,7 +10,7 @@ public class FileInfoService
         this.freeSql = freeSql;
     }
 
-    public async Task<List<FileInfoEntity>> GetUserFiles(string userId,string? type,string? search,RedisCache redis)
+    public async Task<List<FileInfoEntity>> GetUserFiles(string userId,int pid,string? type,string? search,RedisCache redis)
     {
         string key = $"{userId}_{CachingKeys.GetUserFiles}";
         if (type == null)
@@ -22,14 +22,15 @@ public class FileInfoService
             }
         }
 
-        int _type = string.IsNullOrEmpty(type) ? -1 : int.Parse(type);
+        FileType _type;
         var data =await freeSql.Select<FileInfoEntity>()
             .Where(f => (f.UserId == userId && f.DeleteFlag)
-                        &&(_type<0?true:f.Type==_type)&&(string.IsNullOrEmpty(search) || 
-                                                         f.FileName.Contains(search)))
+                        &&(!FileType.TryParse(type, out _type)||f.Type==_type)&&(string.IsNullOrEmpty(search) || 
+                                                         f.Name.Contains(search))&& (
+                            pid==Constants.FileRootId || f.Pid == pid))
             .ToListAsync();
         if(type == null)
-           redis.Set(key,data,Constants.GetUserFiles);
+           redis.Set(key,data,Constants.GetUserFilesExpire);
         return data;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace CloudPlate2.Controllers;
@@ -41,6 +42,32 @@ public class CommonController : ControllerBase
         string res = await Task.Run(()=>RandomGenerator.GenerateByTable(count));
         return Result.OK<string>(res);
     }
+
+    [Authorize]
+    [HttpGet("{userId")]
+    public async Task<ActionResult<Result<List<FileTypeIcon>>>> GetFileTypes([FromRoute] string userId)
+    {
+        string key = $"{userId}_{CachingKeys.GetFileTypes}";
+        if (redis.KeyExists(key))
+            return Result.OK(await redis.GetAsync<List<FileTypeIcon>>(key));
+        var result = await Task.Run(() =>
+        {
+            var res = new List<FileTypeIcon>();
+            var fileTypes = Enum.GetValues<FileType>();
+            fileTypes.ToList().ForEach(ft => res.Add(new FileTypeIcon
+            {
+                Name = Constants.GetFileTypeName(ft),
+                Icon = Constants.GetFileCover(ft),
+                Type = ft
+            }));
+            return res;
+        });
+        redis.Set(key,result,Constants.GetFileTypesExpire);
+        
+        return Result.OK(result);
+    }
+    
+    
     
     private string GetCheckCode(int count, string email, RedisCache redis)
     {

@@ -17,23 +17,17 @@ public class UserService
         if (user == null)
             return default;
         var res = new UserInfo();
-        if (rememberPassword)
+     
+        if (StringEncrypt.Compare(password, user.Password))
         {
             res.CopyProperties(user);
             string token = jwtService.GenerateToken(user.Id, Constants.TokenExpire);
             redis.Set($"{user.Id}_{Constants.TokenKey}", token, Constants.TokenExpire);
             res.Token = token;
         }
-        else
-        {
-            if (StringEncrypt.Compare(password, user.Password))
-            {
-                res.CopyProperties(user);
-                string token = jwtService.GenerateToken(user.Id, Constants.TokenExpire);
-                redis.Set($"{user.Id}_{Constants.TokenKey}", token, Constants.TokenExpire);
-                res.Token = token;
-            }
-        }
+        
+        if(rememberPassword)
+            res.Pwd = user.Password;
 
         freeSql.Transaction(() =>
         {

@@ -51,7 +51,7 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
     IFreeSql fsql = new FreeSqlBuilder()
         .UseConnectionString(DataType.MySql,connectionString)
         .UseAdoConnectionPool(true)
-        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"执行sql语句：{cmd.CommandText}"))
+        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"FreeSql生成并执行sql语句：{cmd.CommandText}"))
         .UseAutoSyncStructure(true) //自动同步实体结构到数据库，只有CRUD时才会生成表
         .Build();
     fsql.CodeFirst.IsAutoSyncStructure = true;
@@ -66,15 +66,16 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
         builder.Index("Index_UserId","UserId");
         builder.Index("Index_Pid","Pid");
         builder.Index("Index_DeleteFlag","DeleteFlag");
-        builder.Property(f=>f.CreateTime).DbType("datetime").IsNullable(false)
+        builder.Property(f=>f.UploadTime).DbType("datetime").IsNullable(false)
             .InsertValueSql(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-        builder.Property(f => f.FileCover).DbType("varchar(50)")
+        builder.Property(f => f.Cover).DbType("varchar(50)")
             .IsNullable(false);
-        builder.Property(f => f.FileName).DbType("varchar(50)").IsNullable(false);
-        builder.Property(f=>f.FileSize).DbType("bigint").IsNullable(false);
+        builder.Property(f => f.Name).DbType("varchar(50)").IsNullable(false);
+        builder.Property(f=>f.Size).DbType("bigint").IsNullable(false);
         builder.Property(f => f.RecycleTime).DbType("datetime");
         builder.Property(f => f.RecoverTime).DbType("datetime");
-        builder.Property(f => f.Type).DbType("tinyint(1)");
+        builder.Property(f => f.Type).MapType(typeof(int)).IsNullable(false).
+            DbType("tinyint(1)");
         builder.Property(f=>f.UpdateTime).DbType("datetime");
     });
 
