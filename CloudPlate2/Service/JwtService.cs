@@ -19,11 +19,14 @@ public class JwtService
         var claims = new[]
         {
             new Claim(ClaimTypes.Name, userId)
+            /*new Claim(ClaimTypes.Role,"User"),
+            new Claim(ClaimTypes.Role,"Admin")*/
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.Key));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+        Console.WriteLine(DateTime.Now.Ticks);
         var token = new JwtSecurityToken(
             issuer: config.Issuer,
             audience: config.Audience,

@@ -51,13 +51,13 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
     IFreeSql fsql = new FreeSqlBuilder()
         .UseConnectionString(DataType.MySql,connectionString)
         .UseAdoConnectionPool(true)
-        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"FreeSql生成并执行sql语句：{cmd.CommandText}"))
+        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"FreeSql执行sql语句：{cmd.CommandText}"))
         .UseAutoSyncStructure(true) //自动同步实体结构到数据库，只有CRUD时才会生成表
         .Build();
     fsql.CodeFirst.IsAutoSyncStructure = true;
     fsql.CodeFirst.ConfigEntity<Model.Entity.FileInfo>(builder =>
     {
-        builder.AsTable(nameof(Model.Entity.FileInfo));
+        builder.Name(nameof(Model.Entity.FileInfo));
         builder.Property(f=>f.Id).DbType("bigint").IsPrimary(true).IsIdentity(true);
         builder.Property(f=>f.Pid).DbType("bigint").IsNullable(false);
         builder.Property(f => f.DeleteFlag).DbType("tinyint(1)").IsNullable(false)
@@ -81,15 +81,15 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
 
     fsql.CodeFirst.ConfigEntity<UploadTask>(builder =>
     {
-          builder.AsTable(nameof(UploadTask));
+          builder.Name(nameof(UploadTask));
           builder.Property(t=>t.Id).DbType("bigint").IsPrimary(true).IsIdentity(true);
-          builder.Property(t=>t.UserId).DbType("varchar(16)").IsNullable(false);
-          builder.Index("Index_UserId","UserId");
+          builder.Property(t=>t.UserAccount).DbType("varchar(16)").IsNullable(false);
+          builder.Index("Index_UserAccount","UserAccount");
           builder.Property(t=>t.CreateTime).DbType("datetime")
               .InsertValueSql(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
           builder.Property(t=>t.Current).DbType("bigint").IsNullable(false);
           builder.Property(t=>t.Total).DbType("bigint").IsNullable(false);
-          builder.Property(t=>t.Md5).DbType("varchar(125)").IsNullable(false);
+          builder.Property(t=>t.TempFileName).DbType("varchar(125)").IsNullable(false);
           builder.Property(t => t.Status).DbType("tinyint(1)");
           builder.Index("Index_Status","Status");
           builder.Property(t => t.FinishTime).DbType("datetime");
@@ -100,7 +100,7 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
 
 KLoggerInstance.Assign(builder.Configuration["Logging:FilePath"]);
 
-builder.Services.AddAuthentication(options =>
+builder.Services.AddAuthentication(options=>
     {
         options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
         options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -137,19 +137,19 @@ var app = builder.Build();
     app.UseSwaggerUI();
 }*/
 
-app.UseStaticFiles(new StaticFileOptions()
-{
-    RequestPath = builder.Configuration["Resource:Image:Patten"],
-    FileProvider = new PhysicalFileProvider(builder.Configuration["Resource:Image:Path"])
-});
-
 app.UseCors();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    RequestPath = builder.Configuration["Resource:Image:Pattern"],
+    FileProvider = new PhysicalFileProvider(builder.Configuration["Resource:Image:Path"])
+});
 
 app.MapControllers();
 

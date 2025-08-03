@@ -44,7 +44,7 @@ public class CommonController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{userId")]
+    [HttpGet("{userId}")]
     public async Task<ActionResult<Result<List<FileTypeIcon>>>> GetFileTypes([FromRoute] string userId)
     {
         string key = $"{userId}_{CachingKeys.GetFileTypes}";

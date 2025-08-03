@@ -23,7 +23,12 @@ public static class FreeSqlExpansion
         insert.ExecuteAffrows();
     }
 
-    public static T? ExecuteScalar<T>(this IAdo ado,string sql,object? param = null) where T:class
+    public static void Delete<T>(this IDelete<T> delete) where T : class
+    {
+        delete.ExecuteAffrows();
+    }
+
+    public static T? ExecuteScalar<T>(this IAdo ado,string sql,object? param = null)
     {
         object result = ado.ExecuteScalar(sql,param);
         if(result == null)

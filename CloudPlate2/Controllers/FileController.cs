@@ -18,11 +18,12 @@ public class FileController : ControllerBase
     }
 
     [Authorize]
-    [HttpGet("{userId}")]
+    [HttpGet("{userId}/{pid}")]
     public async Task<ActionResult<Result<List<FileInfoEntity>>>> GetUserFiles([FromRoute] string userId,
+        [FromRoute] int pid,
         [FromQuery]string? type,[FromQuery]string? search)
     {
-        var data = await fileInfoService.GetUserFiles(userId, type, search,redis);
+        var data = await fileInfoService.GetUserFiles(userId,pid,type,search,redis);
         return Result.OK(data);
     }
 }

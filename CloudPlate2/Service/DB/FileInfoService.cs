@@ -33,4 +33,16 @@ public class FileInfoService
            redis.Set(key,data,Constants.GetUserFilesExpire);
         return data;
     }
+
+    public Task InsertUserFile(FileInfoEntity entity)
+    {
+        return Task.Run(() =>
+        {
+            freeSql.Transaction(() =>
+            {
+                freeSql.Insert(entity)
+                    .Execute();
+            });
+        });
+    }
 }

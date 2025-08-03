@@ -1,13 +1,15 @@
-﻿namespace Model.Entity;
+﻿using Model.Entity.Enum;
+
+namespace Model.Entity;
 
 public class UploadTask
 {
     public long Id { get; set; }
     public int Current { get; set; }
     public int Total { get; set; }
-    public string Md5 { get; set; }
-    public string CreateTime { get; set; }
+    public string TempFileName { get; set; }
+    public DateTime? CreateTime { get; set; }
     public DateTime? FinishTime { get; set; }
-    public bool Status { get; set; }
-    public string UserId { get; set; }
+    public UploadStatus Status { get; set; }
+    public string UserAccount { get; set; }
 }
