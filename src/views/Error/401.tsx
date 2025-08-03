@@ -1,6 +1,7 @@
 import { Route } from "../../moudles/Route";
 
 export function Unauthorized() {
+  
     return (
         <div style={{ textAlign: 'center', marginTop: '20%' }} onClick={()=>Route.back()} className="no-drag">
             <h1>401 - 未经授权</h1>

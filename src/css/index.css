@@ -76,3 +76,13 @@ button:focus-visible {
 .no-drag {
   -webkit-app-region: no-drag;
 }
+
+.text-overflow{
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+  overflow: hidden;
+}
+
+.ant-menu-item,.ant-menu-item-selected{
+  -webkit-app-region:no-drag
+}

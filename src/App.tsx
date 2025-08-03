@@ -21,13 +21,13 @@ function App() {
     <>
       <Routes>
         <Route path="/" element={<Navigate to="/Login" replace />} />
-        <Route path="/Login" element={<Login />} />
-        <Route path="/Home" element={<Home />} >
-           <Route path="/UserFiles" element={<UserFiles/>}></Route>
+        <Route path="/Login" element={<Login />} key="login" />
+        <Route path="/Home" element={<Home />} key="home">
+           <Route path="/Home/UserFiles" element={<UserFiles/>} key="userFiles"></Route>
         </Route>
-        <Route path="/401" element={<Unauthorized />} />
-        <Route path="/404" element={<NotFound />} />
-        <Route path="/500" element={<InternalServerError />} />
+        <Route path="/401" element={<Unauthorized />} key="401" />
+        <Route path="/404" element={<NotFound />} key="404" />
+        <Route path="/500" element={<InternalServerError />} key="500" />
         {/* Add more routes as needed */}
       </Routes>
 

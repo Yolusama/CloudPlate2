@@ -5,6 +5,7 @@ import {Route} from "../moudles/Route";
 const baseUrl = "http://localhost:5435";
 
 axios.defaults.baseURL = baseUrl;
+axios.defaults.timeout = 60*1000;
 
 export function createCancelToken(){
   return axios.CancelToken.source();
@@ -30,7 +31,7 @@ export async function RequestAsync(url:string,type:string,data:any,headers:Recor
 
 const defaultFailCallback = (error:AxiosError)=>{
   const code = error.status == undefined ? "0" : error.status;
-  switch(code){
+  /*switch(code){
     case 401:
       Route.dive("/401");
       break;
@@ -40,7 +41,7 @@ const defaultFailCallback = (error:AxiosError)=>{
     case 500:
       Route.dive("/500");
       break;  
-  }
+  }*/
 
   console.log(error);
 }
@@ -109,15 +110,16 @@ export async function PatchAsync(url:string,data:any,config:AxiosRequestConfig){
 }
 
 export function Authorization(isFormData:boolean = false) {
-  const token = stateStroge.get("token");
+  const token = stateStroge.get("user").token;
   if(isFormData) {
     return {
-      "Content-Type": "multipart/form-data",
-      Authorization: `Bearer ${token}`
+      "Content-Type" : "multipart/form-data",
+      Authorization : `Bearer ${token}`
     };
   }
   return {
-    Authorization: `Bearer ${token}`
+    Authorization : `Bearer ${token}`,
+    "Content-Type" : "application/json"
   };
 }
 

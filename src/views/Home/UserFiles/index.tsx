@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react"
 import { FileInfo, MenuItem } from "../../../moudles/api/types"
-import { FileType, reactFor } from "../../../moudles/Common"
-import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FolderOutlined, PlayCircleOutlined } from "@ant-design/icons"
-import { Menu } from "antd"
+import { FileType, getFileSize } from "../../../moudles/Common"
+import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
+import { Menu, Progress, ProgressProps } from "antd"
+import { CommonApi, FileInfoApi } from "../../../moudles/api"
+import stateStroge from "../../../moudles/StateStorage"
 
 interface FileTypeNameIcon {
   name: string,
@@ -11,8 +13,11 @@ interface FileTypeNameIcon {
 }
 
 type UserFilesProps = {
-  headers: FileTypeNameIcon[],
-  files: FileInfo[]
+  headers?: FileTypeNameIcon[],
+  files?: FileInfo[],
+  pid?: Number,
+  type?: string,
+  search?: string
 }
 
 function getFileTypeIcon(type: FileType) {
@@ -29,21 +34,41 @@ function getFileTypeIcon(type: FileType) {
 
 
 export function UserFiles() {
-  const [state, setState] = useState<UserFilesProps>();
+  const [state, setState] = useState<UserFilesProps>({
+    type:"",search:"",pid:-1
+  });
+  const user = stateStroge.get("user");
+  const progressColor : ProgressProps["strokeColor"] = {
+    '0%': '#52c41a',
+    '50%': '#ffd821',
+  '  100%': 'red'
+  }
+  useEffect(() => {
+    FileInfoApi.getUserFiles(user.id, state?.pid, state?.type, state?.search, res => {
+      const data = res.data;
+      setState({ ...state, files: data });
+    });
+
+    CommonApi.getFileTypes(user.id,res=>setState({...state,headers:res.data}));
+  }, []);
 
   const memuItems: MenuItem[] = [{
     label: "我的文件",
     icon: <FileOutlined />,
     key: "files",
-    children: state?.headers.map(e => {
+    children: state?.headers?.map(e => {
       const item: MenuItem = {
         label: e.name,
         key: e.name,
         icon: getFileTypeIcon(e.type)
       }
-
       return item;
     })
+  },
+  {
+    label: "回收站",
+    key: "recycleBin",
+    icon: <RestOutlined />
   }];
 
   useEffect(() => {
@@ -55,10 +80,15 @@ export function UserFiles() {
     <>
       <div id="user-files">
         <Menu
-          onClick={()=>{}}
-          style={{ width: 256 }}
+          onClick={() => { }}
+          style={{ width: 128,height:"90%" }}
           items={memuItems}
         />
+        <div className="space">
+            <Progress percent={parseInt((user.currentSpace/user.totalSpace).toFixed(0))}
+            strokeColor={progressColor}  />
+            <p>{getFileSize(user.currentSpace)}/{getFileSize(user.totalSpace)}</p>
+        </div>
       </div>
     </>
   )

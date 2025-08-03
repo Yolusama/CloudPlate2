@@ -7,7 +7,7 @@ import { CheckCodeInput } from "../../../components/CheckCodeInput";
 import "../../../css/Login.css";
 import { Register } from "../Register";
 import useMessage from "antd/es/message/useMessage";
-import { CommonApi, UserApi } from "../../../moudles/api";
+import { UserApi } from "../../../moudles/api";
 import { Route } from "../../../moudles/Route";
 import { LoginModel } from "../../../moudles/api/types";
 
@@ -19,57 +19,70 @@ type LoginProps = {
     useCheckCode?: boolean;
     showRegister?: boolean;
     loading?: boolean;
+    accounts?: DefaultOptionType[];
 }
 
 export function Login() {
-    const [state, setState] = useState<LoginProps>({ useCheckCode: false, loading: false });
+    const [state, setState] = useState<LoginProps>(
+        { useCheckCode: false, loading: false, accounts: []});
     const [messageApi, contextHolder] = useMessage();
-    const options: DefaultOptionType[] = [];
     const checkCodeMaxlength = 4;
 
     useEffect(() => {
         const accounts = stateStroge.get("accounts");
+        var defaultAccount:string|undefined;
         if (accounts != undefined && accounts.length > 0) {
             accounts.forEach((account: string) => {
-                options.push({ label: account, value: account });
+                state?.accounts?.push({ label: account, value: account });
             });
-            setState({ ...state, identifier: accounts[0].value });
+            defaultAccount = accounts[0];
+            setState({ ...state, accounts: state?.accounts });
         }
         const user = stateStroge.get("user");
+        var rememberObj = {
+            remember:false,
+            pwd:""
+        }
         if (user != undefined) {
             const remember = stateStroge.get("rememberPassword");
-            if (remember != undefined) {
-                setState({ ...state, remember: remember });
-                if (state?.remember)
-                    setState({ ...state, password: user.pwd });
+            if (remember)
+            {
+                rememberObj.remember = remember;
+                rememberObj.pwd = user.pwd;
             }
+            
         }
 
         window.electron?.send("setLoginWindowState", {});
         setState({
-            ...state, showRegister: false
-        })
+            ...state, showRegister: false,identifier:defaultAccount,
+            remember:rememberObj.remember,password:rememberObj.pwd
+        });
     }, []);
 
     function identifierComponent() {
-        if (options.length === 0)
+        if (!state?.accounts || state.accounts.length == 0)
             return <Input placeholder="账号/电子邮箱" value={state?.identifier}
                 onInput={e => setState({ ...state, identifier: e.currentTarget.value.replace(/\s/g, "") })} />;
         return <Select
-            options={options}
+            options={state?.accounts}
             showSearch
+            className="no-drag"
             placeholder="选择账号"
+            allowClear={true}
+            style={{ textAlign: "left" }}
             value={state?.identifier}
             filterOption={(input, option) =>
                 (option?.label ?? '').toString().includes(input)
             }
-            onChange={value => setState({ ...state, identifier: value })} />;
+            onChange={value => setState({ ...state, identifier: value })}
+        />;
     }
 
     function loginPassComponent() {
         if (!state?.useCheckCode) {
             return (
-                <Input.Password placeholder="密码" value={state?.password} maxLength={20}
+                <Input.Password placeholder="密码" value={state?.password} visibilityToggle = {false}
                     onInput={e => setState({ ...state, password: e.currentTarget.value.replace(/\s/g, "") })}></Input.Password>
             );
         }
@@ -87,10 +100,19 @@ export function Login() {
             stateStroge.set("user", data);
             Route.switch("/Home");
             const accounts = [];
-            accounts.push(data.account);
-            if(stateStroge.has("accounts"))
-                accounts.push(...stateStroge.get("accounts"));
-            stateStroge.set("accounts",accounts);
+
+            if (stateStroge.has("accounts")) {
+                const stored = stateStroge.get("accounts");
+                if (!stored.includes(data.account))
+                    stored.push(data.account);
+                accounts.push(...stored);
+            }
+            else
+                accounts.push(data.account);
+
+            stateStroge.set("accounts", accounts);
+            if(state?.remember)
+                stateStroge.set("rememberPassword",true);
         }
         if (!state?.useCheckCode)
             UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));
@@ -115,7 +137,7 @@ export function Login() {
                         {loginPassComponent()}
                     </Form.Item>
                     <Form.Item>
-                        <Checkbox checked={state?.remember} onChange={e => setState({ ...state, remember: e.target.checked })}>记住密码</Checkbox>
+                        {!state?.useCheckCode&&<Checkbox checked={state?.remember} onChange={e => setState({ ...state, remember: e.target.checked })}>记住密码</Checkbox>}
                         <Checkbox checked={state?.useCheckCode} onChange={e => setState({ ...state, useCheckCode: e.target.checked })}>使用验证码登录</Checkbox>
                     </Form.Item>
                     <Form.Item>

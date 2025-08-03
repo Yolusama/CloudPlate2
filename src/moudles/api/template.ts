@@ -4,7 +4,7 @@ import { type NotificationInstance } from "antd/es/notification/interface";
 
 export function ApiTemplate(url: string, headers: Record<string, any>, type: string, data: any,
     successCallback: ((result: Result) => void) | null = null, feedback:MessageInstance|NotificationInstance | null = null,failCallback:(()=>void)|null = null) {
-    Request(url, type, data, headers, response => {
+        Request(url, type, data, headers, response => {
         const res = response.data;
         if (!res.ok) {
             if(failCallback != null) 

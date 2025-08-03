@@ -1,28 +1,37 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router";
 import { ToolBtn } from "../../components/ToolBtn";
 import "../../css/Home.css";
-import {  Menu, Image } from "antd";
+import { Menu, Image } from "antd";
 import { CloudSyncOutlined, HomeOutlined, MenuFoldOutlined } from "@ant-design/icons";
 import stateStroge from "../../moudles/StateStorage";
 import { userAvatar } from "../../moudles/Request";
 import { type MenuItem } from "../../moudles/api/types";
+import { Route } from "../../moudles/Route";
+
+interface HomeProps {
+    selectedKeys?: string[];
+}
 
 export function Home() {
-    const items:MenuItem[] = [
+    const [state, setState] = useState<HomeProps>({
+        selectedKeys: ["main"]
+    });
+
+    const items: MenuItem[] = [
         {
-            key:"main",
-            label:"首页",
-            icon:<HomeOutlined />
+            key: "main",
+            label: "首页",
+            icon: <HomeOutlined />
         },
         {
-            key:"transport",
-            label:"传输",
-            icon:<CloudSyncOutlined />
+            key: "transport",
+            label: "传输",
+            icon: <CloudSyncOutlined />
         },
         {
-            key:"logout",
-            label:"退出登录",
+            key: "logout",
+            label: "退出登录",
             icon: <MenuFoldOutlined />
         }
     ];
@@ -33,23 +42,32 @@ export function Home() {
         window.electron?.send("setHomeSizeState", {});
     }, []);
 
+    function menuSelected(info: any) {
+        setState({ ...state, selectedKeys: [info.key] });
+        switch (info.key) {
+            case "main": Route.dive("/Home/UserFiles");
+        }
+    }
+
     return (
         <>
             <ToolBtn maximizable={true}></ToolBtn>
-            <div id="home">
-                <Outlet />
-                <div className="cotnent">
-                    <div id="user-info" onClick={e=>{}}>
-                       <Image src={userAvatar(user.avatar)} width={50} height={50} style={{borderRadius:"50%"}}></Image>
-                       <span>{user.nickName}</span>
-                    </div>
+            <div id="home" >
+                <div id="user-info" onClick={e => { }} className="no-drag">
+                    <Image src={userAvatar(user.avatar)} width={50} height={50} style={{ borderRadius: "50%" }}
+                    ></Image>
+                    <span className="text-over-flow">{user.nickname}</span>
+                </div>
+                <div className="content">
                     <Menu
-                        style={{ width: 128 }}
-                        defaultSelectedKeys={["main"]}
+                        style={{ width: 128, height: "calc(100vh - 55px)" }}
+                        selectedKeys={state?.selectedKeys}
                         mode="vertical"
                         theme="light"
                         items={items}
+                        onClick={menuSelected}
                     />
+                    <Outlet />
                 </div>
             </div>
         </>
