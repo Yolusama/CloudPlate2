@@ -17,6 +17,20 @@ public static class Constants
     public const int GB = 1024 * MB;
     public const string DefaultAvatar = "default.png";
     public const int FileRootId = -1;
+    private static readonly string[] imageExtensions = ["png",
+        "jpg", "jpeg", "gif", "bmp", "tiff", "tif", "tiff","ico","svg","webp"];
+
+    private static readonly string[] documentExtensions = ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "csv"];
+
+    private static readonly string[] textExtensions =
+    [
+        "txt", "txtx", "log", "c", "cs", "cpp", "h", "java", "js",
+        "ts", "jsx", "tsx", "py","html","xml","xaml","css","cshtml"
+    ];
+
+    private static readonly string[] audioExtensions = ["mp3", "ogg", "wav","acc","ape","m4r"];
+    private static readonly string[] videoExtensions = ["mp4","m3u8","avi","m4s","mov","mkv","webm"];
+    private static readonly string[] zipExtensions = ["zip","7z","gz","tar"];
 
     public static string GetFileCover(FileType type)
     {
@@ -48,6 +62,25 @@ public static class Constants
             case FileType.Zip: return "压缩文件";
         }
         return string.Empty;
+    }
+   
+    public static FileType GetFileType(string fileSuffix)
+    {
+        if(string.IsNullOrEmpty(fileSuffix))
+            return FileType.File;
+        if(imageExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Image;
+        if(documentExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Document;
+        if(textExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Text;
+        if(audioExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Audio;
+        if(videoExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Video;
+        if(zipExtensions.Contains(fileSuffix.ToLower()))
+            return FileType.Zip;
+        return FileType.File;
     }
     
 }

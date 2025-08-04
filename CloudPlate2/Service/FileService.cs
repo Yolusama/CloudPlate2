@@ -18,9 +18,9 @@ public class FileService
         return $"{RootPath}/{userAccount}";
     }
 
-    public async Task<string> UploadFile(string userAccount,int current, int total,long? taskId,
-        long? pid, IFormFile file,string? tempFileName,string? suffix,
-        FileInfoService fileInfoService, UploadTaskService uploadTaskService)
+    public async Task<FileTaskVO> UploadFile(string userAccount,int current, int total,long? taskId,
+        long? pid, IFormFile file,string? tempFileName,string? suffix,bool isFolder,
+        FileInfoService fileInfoService, UploadTaskService uploadTaskService,UserService userService)
     {
         if (current == 0)
         {
@@ -38,7 +38,7 @@ public class FileService
                 TempFileName = randomName
             };
             uploadTaskService.SaveTask(task);
-            return randomName;
+            return new FileTaskVO{TaskId = task.Id,FileName = randomName};
         }
         else
         {
@@ -56,16 +56,20 @@ public class FileService
                 input.Seek(0, SeekOrigin.Begin);
                 await input.CopyToAsync(stream);
                 fileInfo.Delete();
-                await fileInfoService.InsertUserFile(new FileInfoEntity
+                FileType fileType = isFolder? FileType.Folder : Constants.GetFileType(suffix);
+                fileInfoService.InsertUserFile(new FileInfoEntity
                 {
                    Name = tempFileName,
+                   UserId = await userService.GetUserId(userAccount),
                    UploadTime = DateTime.Now,
                    Pid = pid.Value,
-                   Size = fileInfo.Length
+                   Size = fileInfo.Length,
+                   Type = fileType,
+                   Cover = Constants.GetFileCover(fileType)
                 });
             }
             await uploadTaskService.UpdateProgress(taskId.Value, current, total);
-            return fileName;
+            return new FileTaskVO{TaskId = taskId.Value,FileName = fileName};
         }
     }
 }

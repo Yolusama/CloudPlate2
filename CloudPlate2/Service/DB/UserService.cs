@@ -105,4 +105,13 @@ public class UserService
             return user.Account;
         return string.Empty;
     }
+
+    public async Task<string> GetUserId(string? identifier)
+    {
+        return await Task.Run(() =>
+            freeSql.ExecuteScalar<string>(@"select Id from User where Account = @identifier
+                or Email = @identifier", 
+                new { identifier })
+            );
+    }
 }

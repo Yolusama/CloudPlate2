@@ -28,9 +28,17 @@ public static class FreeSqlExpansion
         delete.ExecuteAffrows();
     }
 
-    public static T? ExecuteScalar<T>(this IAdo ado,string sql,object? param = null)
+    public static T? ExecuteScalar<T>(this IFreeSql freeSql,string sql,object? param = null)
     {
-        object result = ado.ExecuteScalar(sql,param);
+        object result =freeSql.Ado.ExecuteScalar(sql,param);
+        if(result == null)
+            return default;
+        return (T)result;
+    }
+
+    public static async Task<T?> ExecuteScalarAsync<T>(this IFreeSql freeSql, string sql, object? param = null)
+    {
+        object result = await freeSql.Ado.ExecuteScalarAsync(sql,param);
         if(result == null)
             return default;
         return (T)result;

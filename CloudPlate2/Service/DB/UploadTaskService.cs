@@ -14,7 +14,10 @@ public class UploadTaskService
         freeSql.Transaction(() =>
         {
             if (task.Id == 0)
-                freeSql.Insert(task).Execute();
+            {
+                long id = freeSql.Insert(task).ExecuteIdentity();
+                task.Id = id;
+            }
             else
                 freeSql.Update<UploadTask>()
                     .SetSource(task)
@@ -39,4 +42,18 @@ public class UploadTaskService
             });
         });
     }
+
+    public int UpdateStatus(long taskId, UploadStatus status)
+    {
+        int rows = 0;
+        freeSql.Transaction(() =>
+        {
+           rows = freeSql.Update<UploadTask>()
+                .Set(t => t.Status, status)
+                .Where(t => t.Id == taskId)
+                .ExecuteAffrows();
+        });
+        return rows;
+    }
+    
 }
