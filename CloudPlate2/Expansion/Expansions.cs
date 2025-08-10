@@ -43,4 +43,14 @@ public static class FreeSqlExpansion
             return default;
         return (T)result;
     }
+
+    public static int ExecuteNonQuery(this IFreeSql freeSql, string sql, object? param = null)
+    {
+        return freeSql.Ado.ExecuteNonQuery(sql, param);
+    }
+
+    public static Task<int> ExecuteNonQueryAsync(this IFreeSql freeSql, string sql, object? param = null)
+    {
+        return freeSql.Ado.ExecuteNonQueryAsync(sql, param);
+    }
 }

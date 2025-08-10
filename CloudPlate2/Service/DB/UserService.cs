@@ -114,4 +114,19 @@ public class UserService
                 new { identifier })
             );
     }
+
+    public Task<int> UpdateSpace(long size, string account)
+    {
+       return freeSql.ExecuteNonQueryAsync("update User Set Current = Current + @Size where Account = @Account", 
+            new { Size = size , Account = account });
+    }
+
+    public bool SizeFit(long size, string account)
+    {
+        var sizeOpt = freeSql.ExecuteScalar<(long,long)>("select Current,Total from User where Account = @Account",
+            new { Account = account });
+        if(sizeOpt.Item1+size>sizeOpt.Item2)
+            return false;
+        return true;
+    }
 }

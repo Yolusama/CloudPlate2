@@ -18,13 +18,19 @@ public class FileService
         return $"{RootPath}/{userAccount}";
     }
 
+    public void RemoveTempFile(string userAccount,string tempFileName)
+    {
+        FileInfo fileInfo = new FileInfo($"{tempFilePath}/{tempFileName}");
+        fileInfo.Delete();
+    }
+
     public async Task<FileTaskVO> UploadFile(string userAccount,int current, int total,long? taskId,
         long? pid, IFormFile file,string? tempFileName,string? suffix,bool isFolder,
         FileInfoService fileInfoService, UploadTaskService uploadTaskService,UserService userService)
     {
         if (current == 0)
         {
-            string randomName = $"{RandomGenerator.RandomGUID}.{suffix}";
+            string randomName = $"{userAccount}-{RandomGenerator.RandomGUID}.{suffix}";
             using FileStream fs = new FileStream($"{tempFilePath}/{randomName}", FileMode.Create);
             await file.CopyToAsync(fs);
             UploadTask task = new UploadTask
@@ -42,6 +48,8 @@ public class FileService
         }
         else
         {
+            if (!userService.SizeFit(file.Length, userAccount))
+                return null;
             string fileName = $"{tempFilePath}/{tempFileName}";
             FileInfo fileInfo = new FileInfo(fileName);
             FileStream fs = fileInfo.Open(FileMode.Append, FileAccess.Write, FileShare.Write);
@@ -50,11 +58,13 @@ public class FileService
             if (current == total)
             {
                 string userFilePath = $"{GetUserRootPath(userAccount)}/{fileName}";
-                using FileStream stream = new FileStream(userFilePath,FileMode.OpenOrCreate,
-                    FileAccess.Read, FileShare.Read);
-                using Stream input = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                FileStream stream = new FileStream(userFilePath,FileMode.OpenOrCreate,
+                    FileAccess.Write, FileShare.Write);
+                Stream input = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 input.Seek(0, SeekOrigin.Begin);
                 await input.CopyToAsync(stream);
+                await input.DisposeAsync();
+                await stream.DisposeAsync();
                 fileInfo.Delete();
                 FileType fileType = isFolder? FileType.Folder : Constants.GetFileType(suffix);
                 fileInfoService.InsertUserFile(new FileInfoEntity
@@ -67,6 +77,7 @@ public class FileService
                    Type = fileType,
                    Cover = Constants.GetFileCover(fileType)
                 });
+                userService.UpdateSpace(fileInfo.Length,userAccount);
             }
             await uploadTaskService.UpdateProgress(taskId.Value, current, total);
             return new FileTaskVO{TaskId = taskId.Value,FileName = fileName};

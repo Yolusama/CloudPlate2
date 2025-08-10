@@ -2,5 +2,5 @@
 
 public enum UploadStatus
 {
-    Abnormal,Uploading,Paused,Finished
+    Abnormal,Uploading,Paused,Cancelled,Finished
 }

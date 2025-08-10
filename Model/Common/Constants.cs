@@ -11,6 +11,8 @@ public static class Constants
     public static TimeSpan GetCheckCodeInterval { get; } = TimeSpan.FromMinutes(1);
     public static TimeSpan GetUserFilesExpire { get; } = TimeSpan.FromMinutes(5);
     public static TimeSpan GetFileTypesExpire { get; } = TimeSpan.FromMinutes(10);
+    public static TimeSpan GetUploadTasksExpire { get; } = TimeSpan.FromSeconds(75);
+    public const int MaxUploadTaskCount = 5;
     
     public const int KB = 1024;
     public const int MB = 1024 * KB;
