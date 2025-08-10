@@ -1,4 +1,4 @@
-import { type GetProp,type MenuProps } from "antd"
+import { TableProps, type GetProp,type MenuProps } from "antd"
 
  export interface RegisterModel{
         email?:string,
@@ -26,3 +26,5 @@ export type FileInfo = {
 }
 
 export type MenuItem = GetProp<MenuProps, "items">[number];
+
+export type TableRowSelection<T extends object = object> = TableProps<T>['rowSelection'];

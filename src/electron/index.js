@@ -1,12 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
-const { join } = require('path');
+const { readFile, writeFile } = require('fs');
+const { join, resolve } = require('path');
 
 let mainWindow;
-
-function Size(x, y) {
-  this.x = x;
-  this.y = y;
-}
 
 function assignEvents() {
   ipcMain.on('minimize', () => {
@@ -14,7 +10,7 @@ function assignEvents() {
   });
 
   ipcMain.on('maximize', (event, arg) => {
-      mainWindow.setFullScreen(arg.maximized);
+    mainWindow.setFullScreen(arg.maximized);
   });
 
   ipcMain.on('close', () => {
@@ -29,10 +25,38 @@ function assignEvents() {
   });
 
   ipcMain.on("setHomeSizeState", () => {
-    mainWindow.setSize(1000,720);
+    mainWindow.setSize(1000, 720);
     mainWindow.setResizable(true);
-    mainWindow.setMinimumSize(500,600);
+    mainWindow.setMinimumSize(500, 600);
     mainWindow.center();
+  });
+}
+
+function assignInvokeFuncs() {
+  ipcMain.handle("readTempFile", (event, arg) => {
+    const tempFileName = arg.tempFileName;
+    return new Promise((resolve, reject) => {
+      readFile(`/data/temp/${tempFileName}`, (err, data) => {
+        if (err && err.cause)
+          reject(err);
+        resolve(new Blob([data.buffer]));
+      });
+    })
+  });
+
+  ipcMain.handle("writeTempFile", (event, arg) => {
+    const tempFileName = arg.tempFileName;
+    return new Promise((resolve, reject) => {
+      try {
+        arg.data.arrayBuffer().then(res => {
+          writeFile(`/data/temp/${tempFileName}`,res);
+          resolve();
+        });
+      }
+      catch (e) {
+        reject(e);
+      }
+    });
   });
 }
 
@@ -59,6 +83,7 @@ function createWindow() {
   win.on('closed', () => mainWindow = null);
   mainWindow = win;
   assignEvents();
+  assignInvokeFuncs();
 }
 
 app.whenReady().then(createWindow);

@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react"
-import { FileInfo, MenuItem } from "../../../moudles/api/types"
-import { FileType, getFileSize } from "../../../moudles/Common"
+import { FileInfo, MenuItem, TableRowSelection } from "../../../moudles/api/types"
+import { FileType,getFileSize,getFileType } from "../../../moudles/Common"
 import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
-import { Menu, Progress, ProgressProps } from "antd"
+import { Menu, Progress, ProgressProps, Table, Image, Space } from "antd"
 import { CommonApi, FileInfoApi } from "../../../moudles/api"
 import stateStroge from "../../../moudles/StateStorage"
+import { fileCover } from "../../../moudles/Request"
 
 interface FileTypeNameIcon {
   name: string,
@@ -15,6 +16,7 @@ interface FileTypeNameIcon {
 type UserFilesProps = {
   headers?: FileTypeNameIcon[],
   files?: FileInfo[],
+  selections?:TableRowSelection<FileInfo>,
   pid?: Number,
   type?: string,
   search?: string
@@ -75,6 +77,29 @@ export function UserFiles() {
 
   }, []);
 
+  function files(){
+    return <>
+       <Table dataSource={state.files} rowSelection={state?.selections}>
+         <Table.Column title="文件名" dataIndex="name" key="name" render={(_,f)=>{
+            return <Space>
+              <Image width={30} height={30} src={fileCover(f.cover)}></Image>
+              <span>{f.name}</span>
+            </Space>
+         }}>
+         </Table.Column>
+         <Table.Column title="大小" dataIndex="size"  key="name" render={(_,f)=>{
+          return <span>{getFileSize(f.size)}</span>
+         }}>
+         </Table.Column>
+         <Table.Column title="类型" dataIndex="type" key="type" render={(_,f)=>{
+           return <span>{getFileType(f.type)}</span>
+         }}>
+         </Table.Column>
+         <Table.Column title="修改时间" dataIndex="updateTime" key="updateTime"></Table.Column>
+       </Table>
+    </>;
+  }
+
 
   return (
     <>
@@ -88,6 +113,9 @@ export function UserFiles() {
             <Progress percent={parseInt((user.currentSpace/user.totalSpace).toFixed(0))}
             strokeColor={progressColor}  />
             <p>{getFileSize(user.currentSpace)}/{getFileSize(user.totalSpace)}</p>
+        </div>
+        <div className="content">
+           {files()}
         </div>
       </div>
     </>

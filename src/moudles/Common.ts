@@ -103,3 +103,16 @@ export function reactKeyValuesFor(data:Record<string,any>|undefined,elementFunc:
 export enum FileType{
     File = 1, Text = 2,Document,Image,Audio,Video,Folder,Zip
 }
+
+export function getFileType(type:FileType):string{
+    switch(type){
+        case FileType.Text: return "文本文件";
+        case FileType.Document: return "文档";
+        case FileType.Image: return "图片";
+        case FileType.Audio: return "音频";
+        case FileType.Video: return "视频";
+        case FileType.Zip: return "压缩文件";
+        case FileType.Folder: return "文件夹";
+        default: return "文件";
+    }
+}
