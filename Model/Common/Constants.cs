@@ -14,9 +14,9 @@ public static class Constants
     public static TimeSpan GetUploadTasksExpire { get; } = TimeSpan.FromSeconds(75);
     public const int MaxUploadTaskCount = 5;
     
-    public const int KB = 1024;
-    public const int MB = 1024 * KB;
-    public const int GB = 1024 * MB;
+    public const long KB = 1024;
+    public const long MB = KB * KB;
+    public const long GB = MB * MB;
     public const string DefaultAvatar = "default.png";
     public const int FileRootId = -1;
     private static readonly string[] imageExtensions = ["png",

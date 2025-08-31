@@ -83,7 +83,7 @@ public class UserService
         user.Email = email;
         user.Password = StringEncrypt.Encrypt(password);
         user.CurrentSpace = 0L;
-        user.TotalSpace = 20L * Constants.GB;
+        user.TotalSpace = 100L * Constants.GB;
         user.Avatar = Constants.DefaultAvatar;
         user.Nickname = nickName;
         user.RegisterTime = DateTime.Now;
@@ -117,15 +117,17 @@ public class UserService
 
     public Task<int> UpdateSpace(long size, string account)
     {
-       return freeSql.ExecuteNonQueryAsync("update User Set Current = Current + @Size where Account = @Account", 
-            new { Size = size , Account = account });
+       return freeSql.ExecuteNonQueryAsync(@"update User Set CurrentSpace = CurrentSpace + @Size 
+   where Account = @Account", new { Size = size , Account = account });
     }
 
     public bool SizeFit(long size, string account)
     {
-        var sizeOpt = freeSql.ExecuteScalar<(long,long)>("select Current,Total from User where Account = @Account",
-            new { Account = account });
-        if(sizeOpt.Item1+size>sizeOpt.Item2)
+        var sizeOpt = freeSql.Select<User>()
+            .Where(e => e.Account == account)
+            .Take(1)
+            .ToOne(u => new { u.CurrentSpace, u.TotalSpace });
+        if(sizeOpt.CurrentSpace+size>sizeOpt.TotalSpace)
             return false;
         return true;
     }

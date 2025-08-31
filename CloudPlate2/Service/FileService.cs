@@ -24,10 +24,26 @@ public class FileService
         fileInfo.Delete();
     }
 
+    public async Task<FileTaskVO> UploadFile(string userAccount, IFormFile file,string suffix,UserService userService)
+    {
+        if(!userService.SizeFit(file.Length, userAccount))
+            return null;
+        string newFileName = $"{RandomGenerator.RandomGUID}.{suffix}";
+        FileStream stream = new FileStream($"{GetUserRootPath(userAccount)}/{newFileName}", FileMode.Create);
+        await file.CopyToAsync(stream);
+        await stream.DisposeAsync();
+        return new FileTaskVO
+        {
+           FileName = newFileName
+        };
+    }
+
     public async Task<FileTaskVO> UploadFile(string userAccount,int current, int total,long? taskId,
         long? pid, IFormFile file,string? tempFileName,string? suffix,bool isFolder,
         FileInfoService fileInfoService, UploadTaskService uploadTaskService,UserService userService)
     {
+        if (!userService.SizeFit(file.Length, userAccount))
+            return null;
         if (current == 0)
         {
             string randomName = $"{userAccount}-{RandomGenerator.RandomGUID}.{suffix}";
@@ -48,8 +64,6 @@ public class FileService
         }
         else
         {
-            if (!userService.SizeFit(file.Length, userAccount))
-                return null;
             string fileName = $"{tempFilePath}/{tempFileName}";
             FileInfo fileInfo = new FileInfo(fileName);
             FileStream fs = fileInfo.Open(FileMode.Append, FileAccess.Write, FileShare.Write);
@@ -57,7 +71,7 @@ public class FileService
             await fs.DisposeAsync();
             if (current == total)
             {
-                string userFilePath = $"{GetUserRootPath(userAccount)}/{fileName}";
+                string userFilePath = $"{GetUserRootPath(userAccount)}/{tempFileName}";
                 FileStream stream = new FileStream(userFilePath,FileMode.OpenOrCreate,
                     FileAccess.Write, FileShare.Write);
                 Stream input = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);

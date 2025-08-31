@@ -41,8 +41,18 @@ public class FileController : ControllerBase
         var res = await fileService.UploadFile(userAccount, current, total,
             taskId, pid, file, tempFileName, suffix, isFolder, fileInfoService, uploadTaskService, userService);
         if(res == null)
-            return Result.Fail("空间不足，无法继续上传！").Generics<FileTaskVO>();
+            return Result.Fail("空间不足，无法上传！").Generics<FileTaskVO>();
         return Result.OK(res);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<Result<FileTaskVO>>> UploadSmallFile([FromForm]string userAccount,
+        [FromForm]IFormFile file,[FromForm]string suffix)
+    {
+       var res = await fileService.UploadFile(userAccount, file, suffix, userService);
+       if(res == null)
+           return Result.Fail("空间不足，无法上传").Generics<FileTaskVO>();
+       return Result.OK(res);
     }
 }
    

@@ -87,6 +87,8 @@ builder.Services.AddSingleton<IFreeSql>(provider=>
           builder.Index("Index_UserAccount","UserAccount");
           builder.Property(t=>t.CreateTime).DbType("datetime")
               .InsertValueSql(DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+          builder.Property(t => t.FileType).MapType(typeof(int)).IsNullable(false).
+              DbType("tinyint(1)");
           builder.Property(t=>t.Current).DbType("bigint").IsNullable(false);
           builder.Property(t=>t.Total).DbType("bigint").IsNullable(false);
           builder.Property(t=>t.TempFileName).DbType("varchar(125)").IsNullable(false);
@@ -126,6 +128,7 @@ builder.Services.AddSingleton<FileService>(provider => new FileService(builder.C
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<UploadTaskService>();
 builder.Services.AddScoped<FileInfoService>();
 builder.Services.AddScoped<ClearRedisCacheFilter>();
 var app = builder.Build();

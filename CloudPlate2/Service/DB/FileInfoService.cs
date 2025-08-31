@@ -26,8 +26,7 @@ public class FileInfoService
         var data =await freeSql.Select<FileInfoEntity>()
             .Where(f => (f.UserId == userId && f.DeleteFlag)
                         &&(!FileType.TryParse(type, out _type)||f.Type==_type)&&(string.IsNullOrEmpty(search) || 
-                                                         f.Name.Contains(search))&& (
-                            pid==Constants.FileRootId || f.Pid == pid))
+                                                         f.Name.Contains(search))&& f.Pid == pid)
             .ToListAsync();
         if(type == null)
            redis.Set(key,data,Constants.GetUserFilesExpire);
