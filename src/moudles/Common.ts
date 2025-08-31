@@ -1,6 +1,4 @@
 import { JSX } from "react";
-import { FileUnknownOutlined } from "@ant-design/icons";
-
 
 export function copy(src: any, to: any) {
     for (const pro in src)
@@ -62,50 +60,60 @@ export function timeWithoutSeconds(date: Date) {
     return `${withZeroStr(date.getHours())}:${withZeroStr(date.getMinutes())}`;
 }
 
-export function getFileSuffix(fileName:string){
+export function getFileSuffix(fileName: string) {
     const index = fileName.lastIndexOf('.');
-    if(index<0)
+    if (index < 0)
         return "";
     else
-       return fileName.substring(index+1);
+        return fileName.substring(index + 1);
 }
 
 export const KB = 1024;
-export const MB = KB*KB;
-export const GB = MB*MB;
+export const MB = KB * KB;
+export const GB = MB * MB;
 
-export function getFileSize(fileSize:number){
-    if(fileSize<KB)
+export function getFileSize(fileSize: number, precision: number | undefined = 0) {
+    if (fileSize < KB)
         return `${fileSize}B`;
-    else if(fileSize>=KB&&fileSize<MB)
-        return `${(fileSize/KB).toFixed(1)}KB`;
-    else if(fileSize>=MB&&fileSize<=GB)
-        return `${(fileSize/MB).toFixed(1)}MB`;
+    else if (fileSize >= KB && fileSize < MB)
+        return `${(fileSize / KB).toFixed(precision)}KB`;
+    else if (fileSize >= MB && fileSize <= GB)
+        return `${(fileSize / MB).toFixed(precision)}MB`;
     else
-       return `${(fileSize/GB).toFixed(1)}GB`;
+        return `${(fileSize / GB).toFixed(precision)}GB`;
 }
 
-export const ADayMills = 1000*60*60*24;
-
-export function reactFor(data:any[]|undefined,elementFunc:(item:any)=>JSX.Element){
-   return data?.map(e=>elementFunc(e));
+export function getChunkSize(fileSize: number) {
+    if (fileSize > 30 * MB && fileSize <= 256 * MB)
+        return 4 * KB;
+    if (fileSize > 256 * MB && fileSize <= GB)
+        return 12 * KB;
+    if (fileSize > GB && fileSize < 10 * GB)
+        return MB;
+    return 10 * MB;
 }
 
-export function reactKeyValuesFor(data:Record<string,any>|undefined,elementFunc:(item:any)=>JSX.Element)
-{
-    if(data == undefined)return;
-    const res:JSX.Element[] = [];
-    for(let pro in data)
+
+export const ADayMills = 1000 * 60 * 60 * 24;
+
+export function reactFor(data: any[] | undefined, elementFunc: (item: any) => JSX.Element) {
+    return data?.map(e => elementFunc(e));
+}
+
+export function reactKeyValuesFor(data: Record<string, any> | undefined, elementFunc: (item: any) => JSX.Element) {
+    if (data == undefined) return;
+    const res: JSX.Element[] = [];
+    for (let pro in data)
         res.push(elementFunc(data[pro]));
-    return res;    
+    return res;
 }
 
-export enum FileType{
-    File = 1, Text = 2,Document,Image,Audio,Video,Folder,Zip
+export enum FileType {
+    File = 1, Text = 2, Document, Image, Audio, Video, Folder, Zip
 }
 
-export function getFileType(type:FileType):string{
-    switch(type){
+export function getFileType(type: FileType): string {
+    switch (type) {
         case FileType.Text: return "文本文件";
         case FileType.Document: return "文档";
         case FileType.Image: return "图片";
@@ -115,4 +123,8 @@ export function getFileType(type:FileType):string{
         case FileType.Folder: return "文件夹";
         default: return "文件";
     }
+}
+
+export enum UploadFileType {
+    File = 1, Folder
 }

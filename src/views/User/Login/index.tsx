@@ -111,8 +111,7 @@ export function Login() {
                 accounts.push(data.account);
 
             stateStroge.set("accounts", accounts);
-            if(state?.remember)
-                stateStroge.set("rememberPassword",true);
+            stateStroge.set("rememberPassword",state?.remember);
         }
         if (!state?.useCheckCode)
             UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));

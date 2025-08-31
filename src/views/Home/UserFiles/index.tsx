@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react"
 import { FileInfo, MenuItem, TableRowSelection } from "../../../moudles/api/types"
-import { FileType,getFileSize,getFileType } from "../../../moudles/Common"
-import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
+import { FileType, getFileSize, getFileType } from "../../../moudles/Common"
+import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FileZipOutlined, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
 import { Menu, Progress, ProgressProps, Table, Image, Space } from "antd"
 import { CommonApi, FileInfoApi } from "../../../moudles/api"
 import stateStroge from "../../../moudles/StateStorage"
 import { fileCover } from "../../../moudles/Request"
+import { UploadFile } from "../../../components/UploadFile"
+import "../../../css/UserFiles.css"
 
 interface FileTypeNameIcon {
   name: string,
@@ -16,7 +18,7 @@ interface FileTypeNameIcon {
 type UserFilesProps = {
   headers?: FileTypeNameIcon[],
   files?: FileInfo[],
-  selections?:TableRowSelection<FileInfo>,
+  selections?: TableRowSelection<FileInfo>,
   pid?: Number,
   type?: string,
   search?: string
@@ -30,6 +32,7 @@ function getFileTypeIcon(type: FileType) {
     case FileType.Audio: return <CustomerServiceOutlined />;
     case FileType.Video: return <PlayCircleOutlined />;
     case FileType.Folder: return <FolderOutlined />
+    case FileType.Zip: return <FileZipOutlined />;
     default: return <FileUnknownOutlined />;
   }
 }
@@ -37,13 +40,13 @@ function getFileTypeIcon(type: FileType) {
 
 export function UserFiles() {
   const [state, setState] = useState<UserFilesProps>({
-    type:"",search:"",pid:-1
+    type: "", search: "", pid: -1
   });
   const user = stateStroge.get("user");
-  const progressColor : ProgressProps["strokeColor"] = {
+  const progressColor: ProgressProps["strokeColor"] = {
     '0%': '#52c41a',
     '50%': '#ffd821',
-  '  100%': 'red'
+    '  100%': 'red'
   }
   useEffect(() => {
     FileInfoApi.getUserFiles(user.id, state?.pid, state?.type, state?.search, res => {
@@ -51,7 +54,7 @@ export function UserFiles() {
       setState({ ...state, files: data });
     });
 
-    CommonApi.getFileTypes(user.id,res=>setState({...state,headers:res.data}));
+    CommonApi.getFileTypes(user.id, res => setState({ ...state, headers: res.data }));
   }, []);
 
   const memuItems: MenuItem[] = [{
@@ -74,29 +77,29 @@ export function UserFiles() {
   }];
 
   useEffect(() => {
-
+ 
   }, []);
 
-  function files(){
+  function files() {
     return <>
-       <Table dataSource={state.files} rowSelection={state?.selections}>
-         <Table.Column title="文件名" dataIndex="name" key="name" render={(_,f)=>{
-            return <Space>
-              <Image width={30} height={30} src={fileCover(f.cover)}></Image>
-              <span>{f.name}</span>
-            </Space>
-         }}>
-         </Table.Column>
-         <Table.Column title="大小" dataIndex="size"  key="name" render={(_,f)=>{
+      <Table dataSource={state.files} rowSelection={state?.selections}>
+        <Table.Column title="文件名" dataIndex="name" key="name" render={(_, f) => {
+          return <Space>
+            <Image width={30} height={30} src={fileCover(f.cover)}></Image>
+            <span>{f.name}</span>
+          </Space>
+        }}>
+        </Table.Column>
+        <Table.Column title="大小" dataIndex="size" key="name" render={(_, f) => {
           return <span>{getFileSize(f.size)}</span>
-         }}>
-         </Table.Column>
-         <Table.Column title="类型" dataIndex="type" key="type" render={(_,f)=>{
-           return <span>{getFileType(f.type)}</span>
-         }}>
-         </Table.Column>
-         <Table.Column title="修改时间" dataIndex="updateTime" key="updateTime"></Table.Column>
-       </Table>
+        }}>
+        </Table.Column>
+        <Table.Column title="类型" dataIndex="type" key="type" render={(_, f) => {
+          return <span>{getFileType(f.type)}</span>
+        }}>
+        </Table.Column>
+        <Table.Column title="修改时间" dataIndex="updateTime" key="updateTime"></Table.Column>
+      </Table>
     </>;
   }
 
@@ -104,18 +107,22 @@ export function UserFiles() {
   return (
     <>
       <div id="user-files">
-        <Menu
-          onClick={() => { }}
-          style={{ width: 128,height:"90%" }}
-          items={memuItems}
-        />
-        <div className="space">
-            <Progress percent={parseInt((user.currentSpace/user.totalSpace).toFixed(0))}
-            strokeColor={progressColor}  />
+        <div className="file-opt">
+          <Menu
+            onClick={() => { }}
+            style={{ width: 164, height: "90%" }}
+            items={memuItems}
+            className="no-drag"
+          />
+          <div className="space">
+            <Progress percent={parseInt((user.currentSpace / user.totalSpace).toFixed(0))}
+              strokeColor={progressColor} />
             <p>{getFileSize(user.currentSpace)}/{getFileSize(user.totalSpace)}</p>
+          </div>
         </div>
         <div className="content">
-           {files()}
+          <UploadFile userAccount={user.account}></UploadFile>
+          {files()}
         </div>
       </div>
     </>

@@ -1,6 +1,7 @@
 "use strict";
 const { app, BrowserWindow, ipcMain } = require("electron");
-const { join } = require("path");
+const { readFile, writeFile } = require("fs");
+const { join, resolve } = require("path");
 let mainWindow;
 function assignEvents() {
   ipcMain.on("minimize", () => {
@@ -25,6 +26,31 @@ function assignEvents() {
     mainWindow.center();
   });
 }
+function assignInvokeFuncs() {
+  ipcMain.handle("readTempFile", (event, arg) => {
+    const tempFileName = arg.tempFileName;
+    return new Promise((resolve2, reject) => {
+      readFile(`/data/temp/${tempFileName}`, (err, data) => {
+        if (err && err.cause)
+          reject(err);
+        resolve2(new Blob([data.buffer]));
+      });
+    });
+  });
+  ipcMain.handle("writeTempFile", (event, arg) => {
+    const tempFileName = arg.tempFileName;
+    return new Promise((resolve2, reject) => {
+      try {
+        arg.data.arrayBuffer().then((res) => {
+          writeFile(`/data/temp/${tempFileName}`, res);
+          resolve2();
+        });
+      } catch (e) {
+        reject(e);
+      }
+    });
+  });
+}
 function createWindow() {
   const win = new BrowserWindow({
     width: 1e3,
@@ -47,6 +73,7 @@ function createWindow() {
   win.on("closed", () => mainWindow = null);
   mainWindow = win;
   assignEvents();
+  assignInvokeFuncs();
 }
 app.whenReady().then(createWindow);
 app.on("window-all-closed", () => {

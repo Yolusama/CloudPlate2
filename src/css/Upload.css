@@ -1,0 +1,11 @@
+#upload{
+    display: flex;
+    width: fit-content;
+    justify-content: space-between;
+    margin-bottom: 1%;
+}
+
+#upload label,#upload .label{
+    width: 100px;
+    font-size: 14px;
+}

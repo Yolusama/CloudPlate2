@@ -1,0 +1,11 @@
+#user-files{
+    display: flex;
+    position: relative;
+    width: 80vw;
+}
+
+#home #user-files .content{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
