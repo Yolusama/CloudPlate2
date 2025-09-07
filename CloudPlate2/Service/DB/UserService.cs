@@ -131,4 +131,12 @@ public class UserService
             return false;
         return true;
     }
+
+    public bool Logout(string userId,RedisCache redis)
+    {
+        string key = $"{userId}_token";
+        if(redis.KeyExists(key))
+           return redis.Remove(key);
+        return true;
+    }
 }

@@ -51,4 +51,12 @@ public class UserController : ControllerBase
            return Result.Fail(res).Generics<string>();
         return Ok(Result.OK("注册成功！",res));
     }
+
+    [HttpDelete("{userId}")]
+    public ActionResult<Result> Logout([FromRoute] string userId)
+    {
+        if (userService.Logout(userId, redis))
+            return new Result("退出登录成功！", true);
+        return Result.Fail("退出登录操作出现异常！");
+    }
 }
