@@ -64,6 +64,7 @@ export class FileInfoApi {
     static UploadFile(userAccount: string, file: File, suffix: string, current: number, total: number,
         tempFileName: string, taskId: number, pid: number, isFolder: string,
         successCallback: ((result: Result) => void) | null = null,
+        failCallback:()=>void,
         feedback: MessageInstance | NotificationInstance | null = null) {
         const data = new FormData();
         data.append("userAccount", userAccount);
@@ -77,7 +78,7 @@ export class FileInfoApi {
         data.append("isFolder", isFolder);
 
         PutTemplate("/Api/File/UploadFile", data, Authorization(true), successCallback,
-            feedback);
+            feedback,failCallback);
     }
 
 }

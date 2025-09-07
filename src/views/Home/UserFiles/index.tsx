@@ -59,7 +59,6 @@ export function UserFiles() {
 
   const memuItems: MenuItem[] = [{
     label: "我的文件",
-    icon: <FileOutlined />,
     key: "files",
     children: state?.headers?.map(e => {
       const item: MenuItem = {
@@ -113,6 +112,7 @@ export function UserFiles() {
             style={{ width: 164, height: "90%" }}
             items={memuItems}
             className="no-drag"
+            mode="inline"
           />
           <div className="space">
             <Progress percent={parseInt((user.currentSpace / user.totalSpace).toFixed(0))}

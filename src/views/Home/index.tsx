@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Outlet } from "react-router";
 import { ToolBtn } from "../../components/ToolBtn";
 import "../../css/Home.css";
 import { Menu, Image } from "antd";
@@ -7,20 +6,20 @@ import { CloudSyncOutlined, HomeOutlined, MenuFoldOutlined } from "@ant-design/i
 import stateStroge from "../../moudles/StateStorage";
 import { userAvatar } from "../../moudles/Request";
 import { type MenuItem } from "../../moudles/api/types";
-import { Route } from "../../moudles/Route";
+import { UserFiles } from "./UserFiles";
 
 interface HomeProps {
-    selectedKeys?: string[];
+    selectedRoute?:string
 }
 
 export function Home() {
     const [state, setState] = useState<HomeProps>({
-        selectedKeys: ["main"]
+        selectedRoute : "main"
     });
 
     const items: MenuItem[] = [
         {
-            key: "main",
+            key: "home",
             label: "首页",
             icon: <HomeOutlined />
         },
@@ -43,9 +42,9 @@ export function Home() {
     }, []);
 
     function menuSelected(info: any) {
-        setState({ ...state, selectedKeys: [info.key] });
-        switch (info.key) {
-            case "main": Route.dive("/Home/UserFiles");
+        state.selectedRoute = info.key;
+        if(state.selectedRoute == "logout"){
+
         }
     }
 
@@ -61,13 +60,13 @@ export function Home() {
                 <div className="content">
                     <Menu
                         style={{ width: 128, height: "calc(100vh - 55px)" }}
-                        selectedKeys={state?.selectedKeys}
                         mode="vertical"
                         theme="light"
                         items={items}
                         onClick={menuSelected}
                     />
-                    <Outlet />
+                    {state.selectedRoute == "main" && UserFiles()}
+                    
                 </div>
             </div>
         </>
