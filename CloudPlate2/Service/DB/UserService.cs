@@ -1,4 +1,7 @@
-﻿namespace CloudPlate2.Service.DB;
+﻿
+using Mysqlx.Expr;
+
+namespace CloudPlate2.Service.DB;
 
 public class UserService
 {
@@ -108,17 +111,17 @@ public class UserService
 
     public async Task<string> GetUserId(string? identifier)
     {
+        //freesql参数化预编译查询，参数前缀使用?
         return await Task.Run(() =>
-            freeSql.ExecuteScalar<string>(@"select Id from User where Account = @identifier
-                or Email = @identifier", 
-                new { identifier })
+            freeSql.ExecuteScalar<string>("select Id from User where Account = @Identifier or Email = ?Identifier", 
+                new {Identifier  = identifier})
             );
     }
 
     public Task<int> UpdateSpace(long size, string account)
     {
-       return freeSql.ExecuteNonQueryAsync(@"update User Set CurrentSpace = CurrentSpace + @Size 
-   where Account = @Account", new { Size = size , Account = account });
+       return freeSql.ExecuteNonQueryAsync(@"update User Set CurrentSpace = CurrentSpace + ?Size 
+   where Account = ?Account", new { Size = size , Account = account });
     }
 
     public bool SizeFit(long size, string account)
