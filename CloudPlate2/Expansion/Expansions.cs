@@ -1,4 +1,6 @@
-﻿namespace CloudPlate2.Expansion;
+﻿using CloudPlate2.ExceptionHandler;
+
+namespace CloudPlate2.Expansion;
 
 public static class FreeSqlExpansion
 {
@@ -15,22 +17,25 @@ public static class FreeSqlExpansion
     */
     public static void Execute<T>(this IUpdate<T> update)
     {
-        update.ExecuteAffrows();
+        if(update.ExecuteAffrows()<=0)
+            throw new NoEffectSQLException();
     }
 
     public static void Execute<T>(this IInsert<T> insert) where T:class
     {
-        insert.ExecuteAffrows();
+        int rows = insert.ExecuteAffrows();
+        if (rows <= 0)
+            throw new NoEffectSQLException();
     }
 
     public static void Delete<T>(this IDelete<T> delete) where T : class
     {
-        delete.ExecuteAffrows();
+        if(delete.ExecuteAffrows()<=0) throw new NoEffectSQLException();
     }
 
     public static T? ExecuteScalar<T>(this IFreeSql freeSql,string sql,object? param = null)
     {
-        object result =freeSql.Ado.ExecuteScalar(sql,param);
+        object result = freeSql.Ado.ExecuteScalar(sql,param);
         if(result == null)
             return default;
         return (T)result;

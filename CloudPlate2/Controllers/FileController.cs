@@ -46,10 +46,10 @@ public class FileController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Result<FileTaskVO>>> UploadSmallFile([FromForm]string userAccount,
+    public async Task<ActionResult<Result<FileTaskVO>>> UploadSmallFile([FromForm]string userAccount,[FromForm] long pid,
         [FromForm]IFormFile file,[FromForm]string suffix)
     {
-       var res = await fileService.UploadFile(userAccount, file, suffix, userService);
+       var res = await fileService.UploadFile(userAccount, pid, file, suffix, userService,fileInfoService);
        if(res == null)
            return Result.Fail("空间不足，无法上传").Generics<FileTaskVO>();
        return Result.OK(res);

@@ -15,7 +15,10 @@ public class FileService
 
     public string GetUserRootPath(string userAccount)
     {
-        return $"{RootPath}/{userAccount}";
+        DirectoryInfo directory= new DirectoryInfo($"{RootPath}/{userAccount}");
+        if(!directory.Exists)
+            directory.Create();
+        return directory.FullName;
     }
 
     public void RemoveTempFile(string userAccount,string tempFileName)
@@ -24,14 +27,28 @@ public class FileService
         fileInfo.Delete();
     }
 
-    public async Task<FileTaskVO> UploadFile(string userAccount, IFormFile file,string suffix,UserService userService)
+    public async Task<FileTaskVO> UploadFile(string userAccount,long pid, IFormFile file,string suffix,UserService userService,FileInfoService fileInfoService)
     {
         if(!userService.SizeFit(file.Length, userAccount))
             return null;
         string newFileName = $"{RandomGenerator.RandomGUID}.{suffix}";
-        FileStream stream = new FileStream($"{GetUserRootPath(userAccount)}/{newFileName}", FileMode.Create);
+        FileStream stream = new FileStream($"{GetUserRootPath(userAccount)}/{newFileName}", FileMode.Create,FileAccess.Write
+            ,FileShare.Write);
         await file.CopyToAsync(stream);
         await stream.DisposeAsync();
+        FileType fileType = Constants.GetFileType(suffix);
+        FileInfoEntity fileInfo = new FileInfoEntity
+        {
+           Name = newFileName,
+           Size = file.Length,
+           Type = fileType,
+           UploadTime = DateTime.Now,
+           Pid = pid,
+           Cover = Constants.GetFileCover(fileType),
+           UserId = await userService.GetUserId(userAccount)
+        };
+        await fileInfoService.InsertUserFile(fileInfo);
+        await userService.UpdateSpace(fileInfo.Size, userAccount);
         return new FileTaskVO
         {
            FileName = newFileName
@@ -91,7 +108,7 @@ public class FileService
                    Type = fileType,
                    Cover = Constants.GetFileCover(fileType)
                 });
-                userService.UpdateSpace(fileInfo.Length,userAccount);
+                await userService.UpdateSpace(fileInfo.Length,userAccount);
             }
             await uploadTaskService.UpdateProgress(taskId.Value, current, total);
             return new FileTaskVO{TaskId = taskId.Value,FileName = fileName};

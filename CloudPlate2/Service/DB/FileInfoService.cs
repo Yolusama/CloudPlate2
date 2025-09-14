@@ -35,13 +35,6 @@ public class FileInfoService
 
     public Task InsertUserFile(FileInfoEntity entity)
     {
-        return Task.Run(() =>
-        {
-            freeSql.Transaction(() =>
-            {
-                freeSql.Insert(entity)
-                    .Execute();
-            });
-        });
+        return  Task.Run(()=>freeSql.Transaction(()=>freeSql.Insert(entity).Execute()));
     }
 }
