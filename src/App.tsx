@@ -6,6 +6,7 @@ import { Unauthorized } from './views/Error/401'
 import { NotFound } from './views/Error/404'
 import { InternalServerError } from './views/Error/500'
 import { Home } from './views/Home'
+import { UserFiles } from './views/Home/UserFiles'
 
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
         <Route path="/" element={<Navigate to="/Login" replace />} />
         <Route path="/Login" element={<Login />} key="login" />
         <Route path="/Home" element={<Home />} key="home">
+           <Route path="/Home/Files" element={<UserFiles />} key="files"></Route>
         </Route>
         <Route path="/401" element={<Unauthorized />} key="401" />
         <Route path="/404" element={<NotFound />} key="404" />

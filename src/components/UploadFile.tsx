@@ -1,51 +1,79 @@
 import { CloudUploadOutlined, FolderAddFilled, UploadOutlined } from "@ant-design/icons";
-import { getChunkSize, getFileSuffix, MB, UploadFileType } from "../moudles/Common";
+import { getChunkSize, getFileSuffix, MB } from "../moudles/Common";
 import "../css/Upload.css"
 import { Button } from "antd";
 import { FileInfoApi } from "../moudles/api";
 import useMessage from "antd/es/message/useMessage";
-import stateStroge from "../moudles/StateStorage";
+
+interface UploadEvent{
+   current:number,
+   newFileName:string,
+   finished:boolean
+}
 
 interface UploadUtilProps {
    userAccount?: string;
-   onUpload?:(count:number)=>void;
+   rootId?:number;
+   onUpload?: (event:UploadEvent) => void;
 }
 
 export function UploadFile(pros: UploadUtilProps) {
    const account = pros.userAccount;
+   const rootId = pros.rootId;
    const [messageApi, contextHolder] = useMessage();
 
    function uploadFile(event: React.ChangeEvent<HTMLInputElement>) {
       const files = event.target.files;
       if (!files || !account) return;
-      const currentFolderId = stateStroge.get("current-folder");
       for (let i = 0; i < files.length; i++) {
          const file = files[i];
          if (file.size <= 10 * MB) {
-            FileInfoApi.UploadSmallFile(account, file, getFileSuffix(file.name), res => {
+            FileInfoApi.UploadSmallFile(account,file,rootId??-1,getFileSuffix(file.name), res => {
                if (res.ok)
+                 {
                   messageApi.success(res.message);
+                  if(pros.onUpload)
+                     pros.onUpload({
+                     current:1,newFileName:res.data.fileName,finished:true
+                     });
+                 }
             }, messageApi);
          }
          else {
             const chunkSize = getChunkSize(file.size);
-            const total = Math.ceil(file.size/chunkSize);
+            const total = Math.ceil(file.size / chunkSize);
             let tempFileName = "";
             let taskId = 0;
             let canGoOn = true;
-            for(let j = 0; j < total; j++)
-            {
-               const part = new File([file.slice(j*chunkSize,(j+1)*chunkSize)],file.name)
-               FileInfoApi.UploadFile(account,part, getFileSuffix(file.name),j,total,tempFileName,taskId,currentFolderId,"false",res=>{
-                     tempFileName = res.data.fileName;
-                     taskId = res.data.taskId;
-               },()=>canGoOn = false,messageApi);
-               if(!canGoOn){
-                  continue;
+            let j = 0;
+            const timer = setInterval(() => {
+               const part = new File([file.slice(j * chunkSize, (j + 1) * chunkSize)], file.name)
+               FileInfoApi.UploadFile(account, part, getFileSuffix(file.name), j, total, tempFileName, taskId, rootId??-1, "false", res => {
+                  tempFileName = res.data.fileName;
+                  taskId = res.data.taskId;
+                  if(pros.onUpload)
+                     pros.onUpload({
+                     current:j,newFileName:res.data.fileName,finished: j == total
+                     });
+               }, () => canGoOn = false, messageApi);
+               if (!canGoOn) {
+                  clearInterval(timer);
+                  return;
                }
-            }
+               else{
+                  if(j==total){
+                     clearInterval(timer);
+                     return;
+                  }
+                  j++;
+               }
+            }, 1000)
          }
       }
+   }
+
+   function uploadFolder(){
+
    }
 
    function createNewUserFolder() {
@@ -69,7 +97,7 @@ export function UploadFile(pros: UploadUtilProps) {
                   type="file"
                   id="folder"
                   multiple
-                  onChange={uploadFile}
+                  onChange={uploadFolder}
                   style={{ display: "none" }}
                   ref={input => {
                      if (input) {
@@ -79,7 +107,7 @@ export function UploadFile(pros: UploadUtilProps) {
                />
             </label>
          </Button>
-         <Button type="text">
+         <Button type="text" onClick={createNewUserFolder}>
             <FolderAddFilled color="#ffd86a" />
             新建文件夹
          </Button>

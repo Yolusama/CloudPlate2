@@ -6,7 +6,10 @@ import { CloudSyncOutlined, HomeOutlined, MenuFoldOutlined } from "@ant-design/i
 import stateStroge from "../../moudles/StateStorage";
 import { userAvatar } from "../../moudles/Request";
 import { type MenuItem } from "../../moudles/api/types";
-import { UserFiles } from "./UserFiles";
+import { Outlet, useLocation } from "react-router";
+import { Route } from "../../moudles/Route";
+import useMessage from "antd/es/message/useMessage";
+import { UserApi } from "../../moudles/api";
 
 interface HomeProps {
     selectedRoute?:string
@@ -14,8 +17,10 @@ interface HomeProps {
 
 export function Home() {
     const [state, setState] = useState<HomeProps>({
-        selectedRoute : "main"
+        selectedRoute : "home"
     });
+    const location = useLocation();
+    const [messageApi,contextHolder] = useMessage();
 
     const items: MenuItem[] = [
         {
@@ -39,12 +44,19 @@ export function Home() {
 
     useEffect(() => {
         window.electron?.send("setHomeSizeState", {});
+        console.log(location);
+        if(location.pathname == "/Home")
+            Route.switch("/Home/Files");
     }, []);
-
     function menuSelected(info: any) {
-        state.selectedRoute = info.key;
+        console.log(info);
+        setState({...state,selectedRoute:info.key});
+        if(state.selectedRoute=="home")return;
+            Route.switch("/Home/Files");
         if(state.selectedRoute == "logout"){
-
+            UserApi.logout(user.id,()=>{
+                stateStroge.clear();
+            },messageApi)
         }
     }
 
@@ -63,9 +75,10 @@ export function Home() {
                         mode="vertical"
                         theme="light"
                         items={items}
+                        selectedKeys={[state?.selectedRoute??""]}
                         onClick={menuSelected}
                     />
-                    {state.selectedRoute == "main" && UserFiles()}
+                    <Outlet />
                     
                 </div>
             </div>

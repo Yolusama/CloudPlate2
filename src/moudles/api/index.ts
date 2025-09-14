@@ -1,7 +1,7 @@
 import { MessageInstance } from "antd/es/message/interface";
 import { Authorization, Result } from "../Request";
 import { NotificationInstance } from "antd/es/notification/interface";
-import { GetTemplate, PostTemplate, PutTemplate } from "./template";
+import { DeleteTemplate, GetTemplate, PostTemplate, PutTemplate } from "./template";
 import { type RegisterModel, type LoginModel } from "./types";
 import { FileType } from "../Common";
 import axios from "axios";
@@ -27,6 +27,10 @@ export class UserApi {
         feedback: MessageInstance | NotificationInstance | null = null, failCallback: (() => void) | null = null) {
         PostTemplate("/Api/User/CheckCodeLogin", model, {}, successCallback, feedback, failCallback);
     }
+
+    static logout(userId: string, successCallback: ((result: Result) => void) | null = null, feedback: MessageInstance | NotificationInstance | null = null) {
+        DeleteTemplate(`/Api/User/Logout/${userId}`, Authorization(), successCallback, feedback);
+    }
 }
 
 export class CommonApi {
@@ -51,11 +55,12 @@ export class FileInfoApi {
         );
     }
 
-    static UploadSmallFile(userAccount: string, file: File, suffix: string, successCallback: ((result: Result) => void) | null = null,
+    static UploadSmallFile(userAccount: string, file: File, pid: Number, suffix: string, successCallback: ((result: Result) => void) | null = null,
         feedback: MessageInstance | NotificationInstance | null = null) {
         const data = new FormData();
         data.append("userAccount", userAccount);
         data.append("file", file);
+        data.append("pid", pid.toString());
         data.append("suffix", suffix);
         PostTemplate("/Api/File/UploadSmallFile", data, Authorization(true), successCallback,
             feedback);
@@ -64,7 +69,7 @@ export class FileInfoApi {
     static UploadFile(userAccount: string, file: File, suffix: string, current: number, total: number,
         tempFileName: string, taskId: number, pid: number, isFolder: string,
         successCallback: ((result: Result) => void) | null = null,
-        failCallback:()=>void,
+        failCallback: () => void,
         feedback: MessageInstance | NotificationInstance | null = null) {
         const data = new FormData();
         data.append("userAccount", userAccount);
@@ -78,7 +83,7 @@ export class FileInfoApi {
         data.append("isFolder", isFolder);
 
         PutTemplate("/Api/File/UploadFile", data, Authorization(true), successCallback,
-            feedback,failCallback);
+            feedback, failCallback);
     }
 
 }

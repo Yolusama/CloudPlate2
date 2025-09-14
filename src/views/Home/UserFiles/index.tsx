@@ -19,7 +19,7 @@ type UserFilesProps = {
   headers?: FileTypeNameIcon[],
   files?: FileInfo[],
   selections?: TableRowSelection<FileInfo>,
-  pid?: Number,
+  pid?: number,
   type?: string,
   search?: string
 }
@@ -121,7 +121,7 @@ export function UserFiles() {
           </div>
         </div>
         <div className="content">
-          <UploadFile userAccount={user.account}></UploadFile>
+          <UploadFile userAccount={user.account} rootId={state?.pid}></UploadFile>
           {files()}
         </div>
       </div>
