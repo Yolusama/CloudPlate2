@@ -3,15 +3,8 @@ using Mysqlx.Expr;
 
 namespace CloudPlate2.Service.DB;
 
-public class UserService
+public class UserService(IFreeSql freeSql)
 {
-    private readonly IFreeSql freeSql;
-
-    public UserService(IFreeSql freeSql)
-    {
-        this.freeSql = freeSql;
-    }
-
     public UserInfo Login(string identifier, string password, RedisCache redis, JwtService jwtService,
         bool rememberPassword = false)
     {
@@ -24,7 +17,7 @@ public class UserService
         {
             if (password == user.Password || StringEncrypt.Compare(password, user.Password))
             {
-                res.CopyProperties(user);
+                res.MapTo(user);
                 string token = jwtService.GenerateToken(user.Id, Constants.TokenExpire);
                 redis.Set($"{user.Id}_{Constants.TokenKey}", token, Constants.TokenExpire);
                 res.Token = token;
@@ -35,7 +28,7 @@ public class UserService
         {
             if (StringEncrypt.Compare(password, user.Password))
             {
-                res.CopyProperties(user);
+                res.MapTo(user);
                 string token = jwtService.GenerateToken(user.Id, Constants.TokenExpire);
                 redis.Set($"{user.Id}_{Constants.TokenKey}", token, Constants.TokenExpire);
                 res.Token = token;
@@ -60,7 +53,7 @@ public class UserService
         if (redis.Get<string>(key) == checkCode)
         {
             User user = freeSql.Select<User>().Where(e => e.Email == email).First();
-            res.CopyProperties(user);
+            res.MapTo(user);
             string token = jwtService.GenerateToken(user.Id, Constants.TokenExpire);
             redis.Set($"{user.Id}_{Constants.TokenKey}", token, Constants.TokenExpire);
             res.Token = token;
@@ -112,10 +105,9 @@ public class UserService
     public async Task<string> GetUserId(string? identifier)
     {
         //freesql参数化预编译查询，参数前缀使用?
-        return await Task.Run(() =>
-            freeSql.ExecuteScalar<string>("select Id from User where Account = ?Identifier or Email = ?Identifier", 
-                new {Identifier  = identifier})
-            );
+        return
+          await  freeSql.ExecuteScalarAsync<string>("select Id from User where Account = ?Identifier or Email = ?Identifier",
+                new { Identifier = identifier });
     }
 
     public Task<int> UpdateSpace(long size, string account)

@@ -5,15 +5,8 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace CloudPlate2.Filter;
 
-public class ClearRedisCacheFilter : IAsyncActionFilter
+public class ClearRedisCacheFilter(IKLogger logger,RedisCache redis) : IAsyncActionFilter
 {
-    private readonly RedisCache redis;
-
-    public ClearRedisCacheFilter(RedisCache redis)
-    {
-        this.redis = redis;
-    }
-    
     public  async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
     {
         var action = context.ActionDescriptor as ControllerActionDescriptor;
@@ -25,7 +18,7 @@ public class ClearRedisCacheFilter : IAsyncActionFilter
                if(redis.KeyExists(key))
                    redis.Remove(key);
         
-            KLoggerInstance.Instance.Info($"执行{action.ActionName}后，清理缓存");
+            logger.Info($"执行{action.ActionName}后，清理缓存");
         }
         await next();
     }

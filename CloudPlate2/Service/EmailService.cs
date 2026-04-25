@@ -3,15 +3,8 @@ using System.Net.Mail;
 
 namespace CloudPlate2.Service;
 
-public class EmailService
+public class EmailService(EmailConfig config,IKLogger logger)
 {
-    private readonly EmailConfig config;
-
-    public EmailService(EmailConfig config)
-    {
-        this.config = config;
-    }
-
     public void Send(string emailTo, string subject, string body)
     {
         string smtpServer = config.SmtpServer; // SMTP服务器地址
@@ -37,6 +30,6 @@ public class EmailService
 
         smtpClient.Send(mailMessage);
 
-        KLoggerInstance.Instance.Info($"邮件已成功发送至{emailTo}");
+        logger.Info($"邮件已成功发送至{emailTo}");
     }
 }

@@ -37,70 +37,22 @@ builder.Services.AddCors(opt =>
     opt.AddDefaultPolicy(policy => policy.
         AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
 });
-ConnectionMultiplexer connection = ConnectionMultiplexer
-        .Connect(builder.Configuration["Redis:Connection"]);
-builder.Services.AddScoped<IDatabase>(provider =>
-{
-    int database = builder.Configuration.GetValue<int>("Redis:Database");
-    return connection.GetDatabase(database);
-});
-builder.Services.AddScoped<RedisCache>();
-builder.Services.AddSingleton<IFreeSql>(provider=>
+builder.Services.AddRedis();
+builder.Services.AddSingleton<IFreeSql>(_ =>
 {
     string connectionString = builder.Configuration.GetValue<string>("MySql:Connection");
-    IFreeSql fsql = new FreeSqlBuilder()
+    var fsql = new FreeSqlBuilder()
         .UseConnectionString(DataType.MySql,connectionString)
         .UseAdoConnectionPool(true)
-        .UseMonitorCommand(cmd => KLoggerInstance.Instance.Trace($"FreeSql执行sql语句：{cmd.CommandText}"))
+        .UseMonitorCommand(cmd => Console.WriteLine($"FreeSql执行sql语句：{cmd.CommandText}"))
         .UseAutoSyncStructure(true) //自动同步实体结构到数据库，只有CRUD时才会生成表
         .Build();
-    fsql.CodeFirst.IsAutoSyncStructure = true;
-    fsql.CodeFirst.ConfigEntity<Model.Entity.FileInfo>(builder =>
-    {
-        builder.Name(nameof(Model.Entity.FileInfo));
-        builder.Property(f=>f.Id).DbType("bigint").IsPrimary(true).IsIdentity(true);
-        builder.Property(f=>f.Pid).DbType("bigint").IsNullable(false);
-        builder.Property(f => f.DeleteFlag).DbType("tinyint(1)").IsNullable(false)
-            .InsertValueSql("0");
-        builder.Property(f => f.UserId).DbType("varchar(16)").IsNullable(false);
-        builder.Index("Index_UserId","UserId");
-        builder.Index("Index_Pid","Pid");
-        builder.Index("Index_DeleteFlag","DeleteFlag");
-        builder.Property(f=>f.UploadTime).DbType("datetime").IsNullable(false)
-            .InsertValueSql($"\'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\'");
-        builder.Property(f => f.Cover).DbType("varchar(50)")
-            .IsNullable(false);
-        builder.Property(f => f.Name).DbType("varchar(50)").IsNullable(false);
-        builder.Property(f=>f.Size).DbType("bigint").IsNullable(false);
-        builder.Property(f => f.RecycleTime).DbType("datetime");
-        builder.Property(f => f.RecoverTime).DbType("datetime");
-        builder.Property(f => f.Type).MapType(typeof(int)).IsNullable(false).
-            DbType("tinyint(1)");
-        builder.Property(f=>f.UpdateTime).DbType("datetime");
-    });
-
-    fsql.CodeFirst.ConfigEntity<UploadTask>(builder =>
-    {
-          builder.Name(nameof(UploadTask));
-          builder.Property(t=>t.Id).DbType("bigint").IsPrimary(true).IsIdentity(true);
-          builder.Property(t=>t.UserAccount).DbType("varchar(16)").IsNullable(false);
-          builder.Index("Index_UserAccount","UserAccount");
-          builder.Property(t=>t.CreateTime).DbType("datetime")
-              .InsertValueSql($"\'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")}\'");
-          builder.Property(t => t.FileType).MapType(typeof(int)).IsNullable(false).
-              DbType("tinyint(1)");
-          builder.Property(t=>t.Current).DbType("bigint").IsNullable(false);
-          builder.Property(t=>t.Total).DbType("bigint").IsNullable(false);
-          builder.Property(t=>t.TempFileName).DbType("varchar(125)").IsNullable(false);
-          builder.Property(t => t.Status).DbType("tinyint(1)");
-          builder.Index("Index_Status","Status");
-          builder.Property(t => t.FinishTime).DbType("datetime");
-    });
     //FreeSqlExpansion.FreeSql = fsql;
     return fsql;
 });
 
-KLoggerInstance.Assign(builder.Configuration["Logging:FilePath"]);
+builder.Services.AddSingleton<IKLogger, KLogger>(_ =>
+    new KLogger(builder.Configuration["Logging:FilePath"]));
 
 builder.Services.AddAuthentication(options=>
     {

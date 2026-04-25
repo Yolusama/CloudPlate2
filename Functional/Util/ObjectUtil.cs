@@ -9,49 +9,50 @@ public static class ObjectUtil
     /// </summary>
     /// <param name="source"></param>
     /// <param name="target"></param>
-    public static void CopyProperties(this object target, object source)
+    public static void MapTo(this object target, object source)
     {
-        Type targetType = target.GetType();
-        Type sourceType = source.GetType();
-        PropertyInfo[] sourceProperties = sourceType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        PropertyInfo[] targetProperties = targetType.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var targetType = target.GetType();
+        var sourceType = source.GetType();
+        var sourceProperties = sourceType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var targetProperties = targetType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         foreach (var property in sourceProperties)
         {
-            if (targetType == sourceType)
+            if (targetType.IsAssignableFrom(sourceType))
                 property.SetValue(target, property.GetValue(source));
             else
             {
-                PropertyInfo? targetProperty = targetProperties.FirstOrDefault(p => p.Name == property.Name);
+                var targetProperty = 
+                    targetProperties.FirstOrDefault(p => p.Name == property.Name
+                    && p.PropertyType.IsAssignableTo(property.PropertyType));
                 if (targetProperty == null) continue;
                 targetProperty.SetValue(target, property.GetValue(source));
             }
         }
     }
-
-    /// <summary>
-    /// 复制字段
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="target"></param>
-    public static void CopyFields(this object target, object source)
+    
+    public static void MapTo<T1,T2>(this T1 target, T2 source)
     {
-        Type targetType = target.GetType();
-        Type sourceType = source.GetType();
-        FieldInfo[] sourceFields = sourceType.GetFields(BindingFlags.Public 
-                                                        | BindingFlags.Instance | BindingFlags.NonPublic);
-        FieldInfo[] targetFields = targetType.GetFields(BindingFlags.Public 
-                                                        | BindingFlags.Instance | BindingFlags.NonPublic);
+        var targetType = typeof(T1);
+        var sourceType = typeof(T2);
+        var sourceProperties = sourceType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var targetProperties = targetType
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
-        foreach (var field in sourceFields)
+        foreach (var property in sourceProperties)
         {
-            if(targetType == sourceType)
-                field.SetValue(target, field.GetValue(source));
+            if (targetType.IsAssignableFrom(sourceType))
+                property.SetValue(target, property.GetValue(source));
             else
             {
-               FieldInfo? targetField = targetFields.FirstOrDefault(f => f.Name == field.Name);
-               if(targetField == null) continue;
-               targetField.SetValue(target, field.GetValue(source));
+                var targetProperty = 
+                    targetProperties.FirstOrDefault(p => p.Name == property.Name
+                                                         && p.PropertyType.IsAssignableTo(property.PropertyType));
+                if (targetProperty == null) continue;
+                targetProperty.SetValue(target, property.GetValue(source));
             }
         }
     }

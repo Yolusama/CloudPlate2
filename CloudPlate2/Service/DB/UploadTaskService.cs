@@ -1,19 +1,13 @@
 ﻿namespace CloudPlate2.Service.DB;
 
-public class UploadTaskService
+public class UploadTaskService(IFreeSql freeSql)
 {
-    private readonly IFreeSql freeSql;
-
-    public UploadTaskService(IFreeSql freeSql)
-    {
-        this.freeSql = freeSql;
-    }
-
     public List<UploadTask> GetUploadTasks(string userAccount, RedisCache redis)
     {
-        int taskCount = freeSql.ExecuteScalar<int>(@"select count(1) from UploadTask where 
-Account = @UserAccount and Status = @Status", 
-            new { UserAccount = userAccount,Status = UploadStatus.Uploading });
+        int taskCount = Convert.ToInt32(freeSql.Select<UploadTask>()
+            .Where(e => e.UserAccount == userAccount
+                        && e.Status == UploadStatus.Uploading)
+            .Count());
         if (taskCount == Constants.MaxUploadTaskCount)
             return default;
         string key = $"{userAccount}_{CachingKeys.GetUploadTasks}";
@@ -26,38 +20,35 @@ Account = @UserAccount and Status = @Status",
         return res;
     }
 
-    public void SaveTask(UploadTask task)
+    public async Task SaveTask(UploadTask task)
     {
-        freeSql.Transaction(() =>
+      await freeSql.TransactionAsync( async worker =>
         {
             if (task.Id == 0)
             {
-                long id = freeSql.Insert(task).ExecuteIdentity();
+                long id = await worker.Orm.Insert(task).ExecuteIdentityAsync();
                 task.Id = id;
             }
             else
-                freeSql.Update<UploadTask>()
+               await worker.Orm.Update<UploadTask>()
                     .SetSource(task)
                     .IgnoreColumns(t=>t.Id)
-                    .Execute();
+                    .ExecuteAffrowsAsync();
         });
     }
 
     public Task UpdateProgress(long taskId, int current, int total)
     {
-        return Task.Run(() =>
-        {
-            freeSql.Transaction(() =>
+        return
+            freeSql.TransactionAsync(async worker =>
             {
-                var update = freeSql.Update<UploadTask>()
-                    .Set(t => t.Current, current);
-                if(current == total)
-                    update.Set(t=>t.Status,UploadStatus.Finished)
-                        .Set(t => t.FinishTime,DateTime.Now);
-                update.Where(t => t.Id == taskId)
-                    .Execute();
+                await worker.Orm.Update<UploadTask>()
+                    .Set(t => t.Current, current)
+                    .SetIf(current == total,t => t.Status, UploadStatus.Finished)
+                    .SetIf(current == total,t => t.FinishTime, DateTime.Now)
+                    .Where(t => t.Id == taskId)
+                    .ExecuteAffrowsAsync();
             });
-        });
     }
 
     public int UpdateStatus(long taskId, UploadStatus status,FileService fileService)
