@@ -1,9 +1,11 @@
-﻿using Model.Entity.Enum;
+﻿using FreeSql.DataAnnotations;
+using Model.Entity.Enum;
 
 namespace Model.Entity;
 
 public class FileInfo
 {
+    [Column(IsIdentity = true, IsPrimary = true)]
     public long Id { get; set; }
     public string UserId { get; set; }
     public long Pid { get; set; }
@@ -12,10 +14,12 @@ public class FileInfo
     public long Size { get; set; }
     public DateTime UploadTime { get; set; }
     public string Cover {get; set;}
+    [Column(DbType = "tinyint(1)")]
     public bool DeleteFlag {get; set; }
     public DateTime? RecycleTime {get; set; }
     public DateTime? RecoverTime {get; set; }
+    [Column(DbType = "tinyint(1)",MapType = typeof(int))]
     public FileType Type { get; set; }
-    public DateTime? UpdateTime { get; set; }
-    
+    public string StoragePath {get; set;}
+    public string IdentificationName {get; set;}
 }

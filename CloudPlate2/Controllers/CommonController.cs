@@ -4,18 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CloudPlate2.Controllers;
 
+[ApiController]
 [Route("Api/[controller]/[action]")]
-public class CommonController : ControllerBase
+public class CommonController(RedisCache redis, EmailService emailService) : ControllerBase
 {
-    private readonly RedisCache redis;
-    private readonly EmailService emailService;
-
-    public CommonController(RedisCache redis,EmailService emailService)
-    {
-        this.redis = redis;
-        this.emailService = emailService;
-    }
-    
     [HttpGet]
     public ActionResult<Result> Heartbeat()
     {

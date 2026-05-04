@@ -19,6 +19,7 @@ global using CloudPlate2.Expansion;
 using CloudPlate2.ExceptionHandler;
 using CloudPlate2.Filter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using FileInfo = Model.Entity.FileInfo;
@@ -26,12 +27,12 @@ using FileInfo = Model.Entity.FileInfo;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
-builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddScoped<IExceptionHandler,GlobalExceptionHandler>();
 builder.Services.AddCors(opt =>
 {
     opt.AddDefaultPolicy(policy => policy.
@@ -40,19 +41,16 @@ builder.Services.AddCors(opt =>
 builder.Services.AddRedis();
 builder.Services.AddSingleton<IFreeSql>(_ =>
 {
-    string connectionString = builder.Configuration.GetValue<string>("MySql:Connection");
+    var connectionString = builder.Configuration.GetValue<string>("MySql:Connection");
     var fsql = new FreeSqlBuilder()
         .UseConnectionString(DataType.MySql,connectionString)
         .UseAdoConnectionPool(true)
         .UseMonitorCommand(cmd => Console.WriteLine($"FreeSql执行sql语句：{cmd.CommandText}"))
-        .UseAutoSyncStructure(true) //自动同步实体结构到数据库，只有CRUD时才会生成表
+        .UseAutoSyncStructure(false) //自动同步实体结构到数据库，只有CRUD时才会生成表
         .Build();
     //FreeSqlExpansion.FreeSql = fsql;
     return fsql;
 });
-
-builder.Services.AddSingleton<IKLogger, KLogger>(_ =>
-    new KLogger(builder.Configuration["Logging:FilePath"]));
 
 builder.Services.AddAuthentication(options=>
     {
@@ -76,13 +74,14 @@ builder.Services.AddAuthentication(options=>
     });
 builder.Services.AddSingleton<JwtConfig>(builder.Configuration.GetSection("Jwt").Get<JwtConfig>());
 builder.Services.AddSingleton<EmailConfig>(builder.Configuration.GetSection("Email").Get<EmailConfig>());
-builder.Services.AddSingleton<FileService>(provider => new FileService(builder.Configuration["Resource:FileRootPath"]));
+builder.Services.AddSingleton<FileService>(_ => new FileService(builder.Configuration["Resource:FileRootPath"]));
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<UploadTaskService>();
 builder.Services.AddScoped<FileInfoService>();
-builder.Services.AddScoped<ClearRedisCacheFilter>();
+//builder.Services.AddScoped<ClearRedisCacheFilter>();
+builder.Services.AddScoped<IKLogger, KLogger>(_=>new KLogger(builder.Configuration["Logging:FilePath"]));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -92,6 +91,7 @@ var app = builder.Build();
     app.UseSwaggerUI();
 }*/
 
+//app.UseRouting();
 app.UseCors();
 
 //app.UseHttpsRedirection();

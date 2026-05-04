@@ -6,19 +6,9 @@ namespace CloudPlate2.Controllers;
 
 [Route("Api/[controller]/[action]")]
 [Authorize]
-public class UploadTaskController : ControllerBase
+public class UploadTaskController(UploadTaskService uploadTaskService, FileService fileService, RedisCache redis)
+    : ControllerBase
 {
-    private readonly UploadTaskService uploadTaskService;
-    private readonly FileService fileService;
-    private readonly RedisCache redis;
-
-    public UploadTaskController(UploadTaskService uploadTaskService,FileService fileService, RedisCache redis)
-    {
-        this.uploadTaskService = uploadTaskService;
-        this.fileService = fileService;
-        this.redis = redis;
-    }
-
     [HttpGet("{userAccount}")]
     public ActionResult<Result<List<UploadTask>>> GetUploadTasks([FromRoute] string userAccount)
     {

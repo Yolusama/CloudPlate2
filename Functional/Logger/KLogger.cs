@@ -25,7 +25,7 @@ namespace Functional
         public void Log(string message, LogLevel level)
         {
             SwitchLogColor(level);
-            string toWriteMsg = $"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}，Log Level {level}: {message}";
+            string toWriteMsg = $"{DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss")}，Log Level {level}:\r\n {message}";
             if(level == LogLevel.Error || level == LogLevel.Fatal)
                 Console.Error.WriteLine(toWriteMsg);
             else
@@ -33,7 +33,7 @@ namespace Functional
             if(FolderPath != null)
             {
                 string path = Path.Combine(FolderPath, $"app-{DateTime.Now.ToString("yyyy-MM-dd")}.log");
-                using FileStream stream = new FileStream(path, FileMode.Append, FileAccess.Write);
+                using FileStream stream = new FileStream(path, FileMode.Append);
                 stream.Write(Encoding.UTF8.GetBytes(toWriteMsg+"\r\n"));
             }
             Console.ResetColor();

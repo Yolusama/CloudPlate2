@@ -74,7 +74,7 @@ public class UserService(IFreeSql freeSql)
         if (user != null)
             return "邮箱已被注册！";
         user = new User();
-        user.Id = RandomGenerator.GenerateUserId();
+        user.Id = RandomGenerator.RandomGUID.ToString();
         user.Account = RandomGenerator.GenerateAccount();
         user.Email = email;
         user.Password = StringEncrypt.Encrypt(password);
@@ -116,12 +116,18 @@ public class UserService(IFreeSql freeSql)
    where Account = ?Account", new { Size = size , Account = account });
     }
 
-    public bool SizeFit(long size, string account)
+    public async Task<UserFileSpaceVO> GetUserFileSpace(string account)
     {
-        var sizeOpt = freeSql.Select<User>()
+        var sizeOpt =await freeSql.Select<User>()
             .Where(e => e.Account == account)
             .Take(1)
-            .ToOne(u => new { u.CurrentSpace, u.TotalSpace });
+            .ToOneAsync(u => new UserFileSpaceVO(u.CurrentSpace, u.TotalSpace));
+        return sizeOpt;
+    }
+
+    public async Task<bool> SizeFit(long size, string account)
+    {
+      var sizeOpt =await GetUserFileSpace(account);
         if(sizeOpt.CurrentSpace+size>sizeOpt.TotalSpace)
             return false;
         return true;

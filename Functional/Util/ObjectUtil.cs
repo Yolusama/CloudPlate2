@@ -44,7 +44,7 @@ public static class ObjectUtil
 
         foreach (var property in sourceProperties)
         {
-            if (targetType.IsAssignableFrom(sourceType))
+            if (targetType == sourceType)
                 property.SetValue(target, property.GetValue(source));
             else
             {

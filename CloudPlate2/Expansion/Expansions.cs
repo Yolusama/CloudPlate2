@@ -138,15 +138,16 @@ public static class AppExpansions
     {
         try
         {
-            using var provider = services.BuildServiceProvider();
-            var config = provider.GetService<IConfiguration>();
-            ConnectionMultiplexer connection = ConnectionMultiplexer
-                .Connect(config["Redis:Connection"]);
-            services.AddScoped<IDatabase>(_ =>
-            {
-                int database = config.GetValue<int>("Redis:Database");
-                return connection.GetDatabase(database);
-            });
+            // 方法1：使用 Singleton + 立即执行
+            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+    
+            // 立即创建连接
+            var connection = ConnectionMultiplexer.Connect(config["Redis:Connection"]);
+            var database = connection.GetDatabase(config.GetValue<int>("Redis:Database"));
+    
+            // 注册已创建的实例
+            services.AddSingleton<IConnectionMultiplexer>(connection);
+            services.AddSingleton(database);
             services.AddScoped<RedisCache>();
         }
         catch (Exception e)

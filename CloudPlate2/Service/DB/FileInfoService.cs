@@ -12,29 +12,24 @@ public class FileInfoService
 
     public async Task<List<FileInfoEntity>> GetUserFiles(string userId,int pid,string? type,string? search,RedisCache redis)
     {
-        string key = $"{userId}_{CachingKeys.GetUserFiles}";
-        if (type == null)
-        {
-            if (redis.KeyExists(key))
-            {
-                var cachedData = await redis.GetAsync<List<FileInfoEntity>>(key);
-                return cachedData;
-            }
-        }
-
         FileType _type;
+        var values = Enum.GetValues<FileType>().Select(x => (int)x);
         var data =await freeSql.Select<FileInfoEntity>()
-            .Where(f => (f.UserId == userId && f.DeleteFlag)
-                        &&(!FileType.TryParse(type, out _type)||f.Type==_type)&&(string.IsNullOrEmpty(search) || 
-                                                         f.Name.Contains(search))&& f.Pid == pid)
+            .WhereIf(Enum.TryParse(type, out _type) && _type!=FileType.File,f=>f.Type==_type)
+            .WhereIf(Enum.TryParse(type, out _type)&&_type == FileType.File,
+                f=>values.Contains((int)f.Type))
+            .WhereIf(!string.IsNullOrEmpty(search),f=>f.Name.Contains(search))
+            .WhereIf(pid > 0, f => f.Pid == pid)
+            .Where(f => f.UserId == userId && !f.DeleteFlag)
             .ToListAsync();
-        if(type == null)
-           redis.Set(key,data,Constants.GetUserFilesExpire);
         return data;
     }
 
     public Task InsertUserFile(FileInfoEntity entity)
     {
-        return  Task.Run(()=>freeSql.Transaction(()=>freeSql.Insert(entity).Execute()));
+        return  freeSql.TransactionAsync(async worker =>
+        {
+            await worker.Orm.Insert(entity).ExecuteAffrowsAsync();
+        });
     }
 }

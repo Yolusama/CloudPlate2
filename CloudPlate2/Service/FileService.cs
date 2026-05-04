@@ -23,29 +23,31 @@ public class FileService
 
     public void RemoveTempFile(string userAccount,string tempFileName)
     {
-        FileInfo fileInfo = new FileInfo($"{tempFilePath}/{tempFileName}");
+        var fileInfo = new FileInfo($"{tempFilePath}/{tempFileName}");
         fileInfo.Delete();
     }
 
     public async Task<FileTaskVO> UploadFile(string userAccount,long pid, IFormFile file,string suffix,UserService userService,FileInfoService fileInfoService)
     {
-        if(!userService.SizeFit(file.Length, userAccount))
+        if(!await userService.SizeFit(file.Length, userAccount))
             return null;
         string newFileName = $"{RandomGenerator.RandomGUID}.{suffix}";
-        FileStream stream = new FileStream($"{GetUserRootPath(userAccount)}/{newFileName}", FileMode.Create,FileAccess.Write
+        var stream = new FileStream($"{GetUserRootPath(userAccount)}/{newFileName}", FileMode.Create,FileAccess.Write
             ,FileShare.Write);
         await file.CopyToAsync(stream);
         await stream.DisposeAsync();
-        FileType fileType = Constants.GetFileType(suffix);
-        FileInfoEntity fileInfo = new FileInfoEntity
+        var fileType = Constants.GetFileType(suffix);
+        var fileInfo = new FileInfoEntity
         {
-           Name = newFileName,
+           Name = file.FileName,
            Size = file.Length,
            Type = fileType,
            UploadTime = DateTime.Now,
            Pid = pid,
            Cover = Constants.GetFileCover(fileType),
-           UserId = await userService.GetUserId(userAccount)
+           UserId = await userService.GetUserId(userAccount),
+           IdentificationName = newFileName,
+           StoragePath = stream.Name
         };
         await fileInfoService.InsertUserFile(fileInfo);
         await userService.UpdateSpace(fileInfo.Size, userAccount);
@@ -59,7 +61,7 @@ public class FileService
         long? pid, IFormFile file,string? tempFileName,string? suffix,bool isFolder,
         FileInfoService fileInfoService, UploadTaskService uploadTaskService,UserService userService)
     {
-        if (!userService.SizeFit(file.Length, userAccount))
+        if (!await userService.SizeFit(file.Length, userAccount))
             return null;
         if (current == 0)
         {
@@ -88,30 +90,58 @@ public class FileService
             await fs.DisposeAsync();
             if (current == total)
             {
-                string userFilePath = $"{GetUserRootPath(userAccount)}/{tempFileName}";
-                FileStream stream = new FileStream(userFilePath,FileMode.OpenOrCreate,
+                var userFilePath = $"{GetUserRootPath(userAccount)}/{tempFileName}";
+                var stream = new FileStream(userFilePath,FileMode.OpenOrCreate,
                     FileAccess.Write, FileShare.Write);
-                Stream input = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
+                var input = fileInfo.Open(FileMode.Open, FileAccess.Read, FileShare.Read);
                 input.Seek(0, SeekOrigin.Begin);
                 await input.CopyToAsync(stream);
                 await input.DisposeAsync();
                 await stream.DisposeAsync();
                 fileInfo.Delete();
-                FileType fileType = isFolder? FileType.Folder : Constants.GetFileType(suffix);
+                var fileType = isFolder? FileType.Folder : Constants.GetFileType(suffix);
                 fileInfoService.InsertUserFile(new FileInfoEntity
                 {
-                   Name = tempFileName,
+                   Name = file.FileName,
                    UserId = await userService.GetUserId(userAccount),
                    UploadTime = DateTime.Now,
                    Pid = pid.Value,
                    Size = fileInfo.Length,
                    Type = fileType,
-                   Cover = Constants.GetFileCover(fileType)
+                   Cover = Constants.GetFileCover(fileType),
+                   IdentificationName = tempFileName,
+                   StoragePath = stream.Name
                 });
                 await userService.UpdateSpace(fileInfo.Length,userAccount);
             }
             await uploadTaskService.UpdateProgress(taskId.Value, current, total);
             return new FileTaskVO{TaskId = taskId.Value,FileName = fileName};
         }
+    }
+
+    public async Task<bool> CreateNewFolder(string userAccount,long? pid,UserService userService,
+        FileInfoService fileInfoService)
+    {
+        var randomId = RandomGenerator.RandomGUID.ToString();
+        var folderName =  $"新建文件夹-{randomId}";
+        var dir = new DirectoryInfo($"{GetUserRootPath(userAccount)}/{randomId}");
+        if(!dir.Exists)
+            dir.Create();
+        else 
+           return false;
+        var file = new FileInfoEntity
+        {
+            Name =folderName,
+            UserId = await userService.GetUserId(userAccount),
+            UploadTime = DateTime.Now,
+            Pid = pid ?? -1,
+            Size = 0,
+            Type = FileType.Folder,
+            Cover = Constants.GetFileCover(FileType.Folder),
+            IdentificationName = randomId,
+            StoragePath = dir.FullName
+        };
+        await fileInfoService.InsertUserFile(file);
+        return true;
     }
 }

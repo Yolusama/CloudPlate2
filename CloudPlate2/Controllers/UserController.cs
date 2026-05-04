@@ -4,19 +4,9 @@ namespace CloudPlate2.Controllers;
 
 
 [Route("Api/[controller]/[action]")]
-public class UserController : ControllerBase
+public class UserController(RedisCache redis, UserService userService, JwtService jwtService)
+    : ControllerBase
 {
-    private readonly RedisCache redis;
-    private readonly UserService userService;
-    private readonly JwtService jwtService;
-
-    public UserController(RedisCache redis,UserService userService,JwtService jwtService)
-    {
-        this.redis = redis;
-        this.userService = userService;
-        this.jwtService = jwtService;
-    }
-
     [HttpPost]
     public ActionResult<Result<UserInfo>> Login([FromBody]UserLogin model)
     {
@@ -58,5 +48,12 @@ public class UserController : ControllerBase
         if (userService.Logout(userId, redis))
             return new Result("退出登录成功！", true);
         return Result.Fail("退出登录操作出现异常！");
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<Result<UserFileSpaceVO>>> GetUserSpace([FromQuery]string account)
+    {
+        var sizeOpt =await userService.GetUserFileSpace(account);
+        return Ok( Result.OK(sizeOpt));
     }
 }
