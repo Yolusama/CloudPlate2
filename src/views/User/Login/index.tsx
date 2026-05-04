@@ -1,4 +1,4 @@
-import { Button, Checkbox, Form, Input, Select, Image, Spin } from "antd";
+import { Button, Checkbox, Form, Input, Select, Spin } from "antd";
 import { ToolBtn } from "../../../components/ToolBtn";
 import { useEffect, useState } from "react";
 import stateStroge from "../../../moudles/StateStorage";
@@ -24,13 +24,13 @@ type LoginProps = {
 
 export function Login() {
     const [state, setState] = useState<LoginProps>(
-        { useCheckCode: false, loading: false, accounts: []});
+        { useCheckCode: false, loading: false, accounts: [] });
     const [messageApi, contextHolder] = useMessage();
     const checkCodeMaxlength = 4;
 
     useEffect(() => {
         const accounts = stateStroge.get("accounts");
-        var defaultAccount:string|undefined;
+        var defaultAccount: string | undefined;
         if (accounts != undefined && accounts.length > 0) {
             accounts.forEach((account: string) => {
                 state?.accounts?.push({ label: account, value: account });
@@ -40,23 +40,22 @@ export function Login() {
         }
         const user = stateStroge.get("user");
         var rememberObj = {
-            remember:false,
-            pwd:""
+            remember: false,
+            pwd: ""
         }
         if (user != undefined) {
             const remember = stateStroge.get("rememberPassword");
-            if (remember)
-            {
+            if (remember) {
                 rememberObj.remember = remember;
                 rememberObj.pwd = user.pwd;
             }
-            
+
         }
 
         window.electron?.send("setLoginWindowState", {});
         setState({
-            ...state, showRegister: false,identifier:defaultAccount,
-            remember:rememberObj.remember,password:rememberObj.pwd
+            ...state, showRegister: false, identifier: defaultAccount,
+            remember: rememberObj.remember, password: rememberObj.pwd
         });
     }, []);
 
@@ -67,22 +66,23 @@ export function Login() {
         return <Select
             options={state?.accounts}
             showSearch
-            className="no-drag"
+            className="no-drag login-account-select"
             placeholder="选择账号"
             allowClear={true}
             style={{ textAlign: "left" }}
             value={state?.identifier}
+            getPopupContainer={triggerNode => triggerNode.parentElement ?? triggerNode}
             filterOption={(input, option) =>
                 (option?.label ?? '').toString().includes(input)
             }
-            onChange={value => setState({ ...state, identifier: value })}
+            onChange={value => setState({ ...state, identifier: value,remember: false, password: "" })}
         />;
     }
 
     function loginPassComponent() {
         if (!state?.useCheckCode) {
             return (
-                <Input.Password placeholder="密码" value={state?.password} visibilityToggle = {false}
+                <Input.Password placeholder="密码" value={state?.password} visibilityToggle={false}
                     onInput={e => setState({ ...state, password: e.currentTarget.value.replace(/\s/g, "") })}></Input.Password>
             );
         }
@@ -111,12 +111,32 @@ export function Login() {
                 accounts.push(data.account);
 
             stateStroge.set("accounts", accounts);
-            stateStroge.set("rememberPassword",state?.remember);
+            stateStroge.set("rememberPassword", state?.remember);
         }
         if (!state?.useCheckCode)
-            UserApi.login(model, state?.remember, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));
+            UserApi.login(model, state?.remember)
+                .then(res => {
+                    if (res.ok) {
+                        afterLogin(res.data);
+                        messageApi.success(res.message);
+                    }
+                    else {
+                        messageApi.error(res.message);
+                        setState({ ...state, loading: false })
+                    }
+                });
         else
-            UserApi.checkCodeLogin(model, res => afterLogin(res.data), messageApi, () => setState({ ...state, loading: false }));
+            UserApi.checkCodeLogin(model)
+                .then(res => {
+                    if (res.ok) {
+                        afterLogin(res.data);
+                        messageApi.success(res.message);
+                    }
+                    else {
+                        messageApi.error(res.message);
+                        setState({ ...state, loading: false })
+                    }
+                });
     }
     function goRegister() {
         setState({ ...state, showRegister: true });
@@ -126,24 +146,28 @@ export function Login() {
             <Spin spinning={state?.loading} fullscreen={true} tip="登录中..." />
             {contextHolder}
             <ToolBtn maximizable={false} />
-            {!state?.showRegister && <div id="login" >
-                <Image src="src/assets/login.gif" width={400} height={220} style={{ marginTop: "15px", borderRadius: "7px" }}></Image>
-                <Form style={{ width: "60%", marginTop: "22px" }} className="no-drag">
-                    <Form.Item>
-                        {identifierComponent()}
-                    </Form.Item>
-                    <Form.Item>
-                        {loginPassComponent()}
-                    </Form.Item>
-                    <Form.Item>
-                        {!state?.useCheckCode&&<Checkbox checked={state?.remember} onChange={e => setState({ ...state, remember: e.target.checked })}>记住密码</Checkbox>}
-                        <Checkbox checked={state?.useCheckCode} onChange={e => setState({ ...state, useCheckCode: e.target.checked })}>使用验证码登录</Checkbox>
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" onClick={login}>登录</Button>
-                        <Button type="default" onClick={goRegister} style={{ marginLeft: "2%" }}>注册</Button>
-                    </Form.Item>
-                </Form>
+            {!state?.showRegister && <div id="login">
+                <div className="login-panel no-drag">
+                    <div className="login-panel__header">
+                        <h1>登录</h1>
+                    </div>
+                    <Form className="login-form">
+                        <Form.Item>
+                            {identifierComponent()}
+                        </Form.Item>
+                        <Form.Item>
+                            {loginPassComponent()}
+                        </Form.Item>
+                        <Form.Item className="login-options">
+                            {!state?.useCheckCode && <Checkbox checked={state?.remember} onChange={e => setState({ ...state, remember: e.target.checked })}>记住密码</Checkbox>}
+                            <Checkbox checked={state?.useCheckCode} onChange={e => setState({ ...state, useCheckCode: e.target.checked })}>使用验证码登录</Checkbox>
+                        </Form.Item>
+                        <Form.Item className="login-actions">
+                            <Button type="primary" onClick={login}>登录</Button>
+                            <Button type="default" onClick={goRegister}>注册</Button>
+                        </Form.Item>
+                    </Form>
+                </div>
             </div>}
             {state?.showRegister && <Register onHide={() => setState({ ...state, showRegister: false })} />}
         </>

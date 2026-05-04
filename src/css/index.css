@@ -86,3 +86,24 @@ button:focus-visible {
 .ant-menu-item,.ant-menu-item-selected{
   -webkit-app-region:no-drag
 }
+
+.ant-image,
+.ant-image-img {
+  cursor: pointer;
+}
+
+.ant-image-preview-root,
+.ant-image-preview-root *,
+.ant-image-preview-mask,
+.ant-image-preview-wrap,
+.ant-image-preview-operations-wrapper {
+  -webkit-app-region: no-drag;
+}
+
+.ant-image-preview-root .ant-image-preview-wrap {
+  z-index: 1100;
+}
+
+.ant-image-preview-root .ant-image-preview-operations-wrapper {
+  z-index: 1101;
+}

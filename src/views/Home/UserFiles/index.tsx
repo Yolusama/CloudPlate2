@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react"
 import { FileInfo, MenuItem, TableRowSelection } from "../../../moudles/api/types"
 import { FileType, getFileSize, getFileType } from "../../../moudles/Common"
-import { CustomerServiceOutlined, FileImageOutlined, FileOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FileZipOutlined, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
-import { Menu, Progress, ProgressProps, Table, Image, Space } from "antd"
-import { CommonApi, FileInfoApi } from "../../../moudles/api"
+import { CustomerServiceOutlined, FileImageOutlined, FileTextOutlined, FileUnknownOutlined, FileWordFilled, FileZipOutlined, FolderOutlined, PlayCircleOutlined, RestOutlined } from "@ant-design/icons"
+import { Menu, Progress, ProgressProps, Table, Image, Space, message } from "antd"
+import { CommonApi, FileInfoApi, UserApi } from "../../../moudles/api"
 import stateStroge from "../../../moudles/StateStorage"
 import { fileCover } from "../../../moudles/Request"
-import { UploadFile } from "../../../components/UploadFile"
+import { UploadEvent, UploadFile } from "../../../components/UploadFile"
 import "../../../css/UserFiles.css"
 
 interface FileTypeNameIcon {
@@ -18,6 +18,8 @@ interface FileTypeNameIcon {
 type UserFilesProps = {
   headers?: FileTypeNameIcon[],
   files?: FileInfo[],
+  currentSpace?: number,
+  totalSpace?: number,
   selections?: TableRowSelection<FileInfo>,
   pid?: number,
   type?: string,
@@ -42,6 +44,7 @@ export function UserFiles() {
   const [state, setState] = useState<UserFilesProps>({
     type: "", search: "", pid: -1
   });
+  const [messageApi, contextHolder] = message.useMessage();
   const user = stateStroge.get("user");
   const progressColor: ProgressProps["strokeColor"] = {
     '0%': '#52c41a',
@@ -49,13 +52,32 @@ export function UserFiles() {
     '  100%': 'red'
   }
   useEffect(() => {
-    FileInfoApi.getUserFiles(user.id, state?.pid, state?.type, state?.search, res => {
-      const data = res.data;
-      setState({ ...state, files: data });
+    getFiles();
+    getUserSpace();
+    CommonApi.getFileTypes(user.id).then(res => {
+      if (!res.ok) {
+        messageApi.error(res.message);
+        return;
+      }
+      setState(prev => ({ ...prev, headers: res.data }));
     });
-
-    CommonApi.getFileTypes(user.id, res => setState({ ...state, headers: res.data }));
   }, []);
+
+  function getFiles(nextState?: Partial<UserFilesProps>) {
+    const pid = nextState?.pid ?? state?.pid;
+    const type = nextState?.type ?? state?.type;
+    const search = nextState?.search ?? state?.search;
+
+    FileInfoApi.getUserFiles(user.id, pid, type, search).then(res => {
+      if (!res.ok) {
+        messageApi.error(res.message);
+        return;
+      }
+      const data = res.data;
+      setState(prev => ({ ...prev, files: data }));
+    });
+  }
+
 
   const memuItems: MenuItem[] = [{
     label: "我的文件",
@@ -63,7 +85,7 @@ export function UserFiles() {
     children: state?.headers?.map(e => {
       const item: MenuItem = {
         label: e.name,
-        key: e.name,
+        key: e.type.toString(),
         icon: getFileTypeIcon(e.type)
       }
       return item;
@@ -76,11 +98,12 @@ export function UserFiles() {
   }];
 
   useEffect(() => {
- 
+
   }, []);
 
   function files() {
     return <>
+      {contextHolder}
       <Table dataSource={state.files} rowSelection={state?.selections}>
         <Table.Column title="文件名" dataIndex="name" key="name" render={(_, f) => {
           return <Space>
@@ -89,7 +112,7 @@ export function UserFiles() {
           </Space>
         }}>
         </Table.Column>
-        <Table.Column title="大小" dataIndex="size" key="name" render={(_, f) => {
+        <Table.Column title="大小" dataIndex="size" key="size" render={(_, f) => {
           return <span>{getFileSize(f.size)}</span>
         }}>
         </Table.Column>
@@ -97,9 +120,36 @@ export function UserFiles() {
           return <span>{getFileType(f.type)}</span>
         }}>
         </Table.Column>
-        <Table.Column title="修改时间" dataIndex="updateTime" key="updateTime"></Table.Column>
+        <Table.Column title="上传时间" dataIndex="uploadTime" key="uploadTime" render={(_, f) => {
+          return new Date(f.uploadTime).toLocaleString()
+        }}
+        ></Table.Column>
       </Table>
     </>;
+  }
+
+  function typeSelected(e: any) {
+    const type = e.key;
+    setState(prev => ({ ...prev, type }));
+    getFiles({ type });
+  }
+
+  function getUserSpace() {
+    UserApi.getUserSpace(user.account).then(res => {
+      if (!res.ok) {
+        messageApi.error(res.message);
+        return;
+      }
+      const data = res.data;
+      setState(prev => ({ ...prev, currentSpace: data.currentSpace, totalSpace: data.totalSpace }));
+    });
+  }
+
+  function fileUploaded(e: UploadEvent) {
+    if (e.finished) {
+      getUserSpace();
+      getFiles();
+    }
   }
 
 
@@ -113,15 +163,16 @@ export function UserFiles() {
             items={memuItems}
             className="no-drag"
             mode="inline"
+            onSelect={typeSelected}
           />
           <div className="space">
-            <Progress percent={parseInt((user.currentSpace / user.totalSpace).toFixed(0))}
+            <Progress percent={parseInt(((state?.currentSpace ?? 0) / (state?.totalSpace ?? 1) * 100).toFixed(0))}
               strokeColor={progressColor} />
-            <p>{getFileSize(user.currentSpace)}/{getFileSize(user.totalSpace)}</p>
+            <p>{getFileSize(state?.currentSpace ?? 0)}/{getFileSize(state?.totalSpace ?? 1)}</p>
           </div>
         </div>
         <div className="content">
-          <UploadFile userAccount={user.account} rootId={state?.pid}></UploadFile>
+          <UploadFile userAccount={user.account} rootId={state?.pid} onUpload={fileUploaded}></UploadFile>
           {files()}
         </div>
       </div>

@@ -5,16 +5,16 @@ import { Button } from "antd";
 import { FileInfoApi } from "../moudles/api";
 import useMessage from "antd/es/message/useMessage";
 
-interface UploadEvent{
-   current:number,
-   newFileName:string,
-   finished:boolean
+export interface UploadEvent {
+   current: number,
+   newFileName: string,
+   finished: boolean
 }
 
 interface UploadUtilProps {
    userAccount?: string;
-   rootId?:number;
-   onUpload?: (event:UploadEvent) => void;
+   rootId?: number;
+   onUpload?: (event: UploadEvent) => void;
 }
 
 export function UploadFile(pros: UploadUtilProps) {
@@ -28,16 +28,16 @@ export function UploadFile(pros: UploadUtilProps) {
       for (let i = 0; i < files.length; i++) {
          const file = files[i];
          if (file.size <= 10 * MB) {
-            FileInfoApi.UploadSmallFile(account,file,rootId??-1,getFileSuffix(file.name), res => {
-               if (res.ok)
-                 {
+            FileInfoApi.uploadSmallFile(account, file, rootId ?? -1, getFileSuffix(file.name)).then(res => {
+               if (res.ok) {
                   messageApi.success(res.message);
-                  if(pros.onUpload)
+                  if (pros.onUpload)
                      pros.onUpload({
-                     current:1,newFileName:res.data.fileName,finished:true
+                        current: 1, newFileName: res.data.fileName, finished: true
                      });
-                 }
-            }, messageApi);
+               }
+               else messageApi.error(res.message);
+            });
          }
          else {
             const chunkSize = getChunkSize(file.size);
@@ -48,20 +48,27 @@ export function UploadFile(pros: UploadUtilProps) {
             let j = 0;
             const timer = setInterval(() => {
                const part = new File([file.slice(j * chunkSize, (j + 1) * chunkSize)], file.name)
-               FileInfoApi.UploadFile(account, part, getFileSuffix(file.name), j, total, tempFileName, taskId, rootId??-1, "false", res => {
-                  tempFileName = res.data.fileName;
-                  taskId = res.data.taskId;
-                  if(pros.onUpload)
-                     pros.onUpload({
-                     current:j,newFileName:res.data.fileName,finished: j == total
-                     });
-               }, () => canGoOn = false, messageApi);
+               FileInfoApi.uploadFile(account, part, getFileSuffix(file.name), j, total, tempFileName, taskId, rootId ?? -1, "false")
+                  .then(res => {
+                     if (res.ok) {
+                        tempFileName = res.data.fileName;
+                        taskId = res.data.taskId;
+                        if (pros.onUpload)
+                           pros.onUpload({
+                              current: j, newFileName: res.data.fileName, finished: j == total
+                           });
+                     }
+                     else {
+                        canGoOn = false
+                        messageApi.error(res.message);
+                     }
+                  });
                if (!canGoOn) {
                   clearInterval(timer);
                   return;
                }
-               else{
-                  if(j==total){
+               else {
+                  if (j == total) {
                      clearInterval(timer);
                      return;
                   }
@@ -72,12 +79,22 @@ export function UploadFile(pros: UploadUtilProps) {
       }
    }
 
-   function uploadFolder(){
+   function uploadFolder() {
 
    }
 
    function createNewUserFolder() {
-
+      FileInfoApi.createFolder(account ?? "", rootId ?? -1).then(res => {
+         if (res.ok) {
+            messageApi.success(res.message);
+            if (pros.onUpload)
+               pros.onUpload({
+                  current: 1, newFileName: res.data.fileName, finished: true
+               });
+         } else {
+            messageApi.error(res.message);
+         }
+      });
    }
 
    return <>

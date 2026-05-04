@@ -13,7 +13,7 @@ interface RegisterProps {
     checkCode?: string;
     hasGotCode?: boolean;
     disabled?: boolean
-    loading?:boolean;
+    loading?: boolean;
 }
 
 interface RegisterOutPros {
@@ -25,24 +25,31 @@ export function Register(pros: RegisterOutPros) {
     const [messageApi, contextHolder] = useMessage();
 
     useEffect(() => {
-        setState({ ...state, disabled: false,loading:false });
+        setState({ ...state, disabled: false, loading: false });
     }, [])
 
     function register() {
-        setState({...state,loading:true});
+        setState({ ...state, loading: true });
         UserApi.register({
             nickName: state?.nickname,
             email: state?.email,
             checkCode: state?.checkCode,
             password: state?.password
-        }, res => {
-            setState({ ...state, disabled: true });
-            messageApi.success(`${res.message}注册得到的账号${res.data},10秒内将自动返回`, 5000);
-            const timer = setTimeout(() => {
-                back(null);
-                clearTimeout(timer);
-            }, 10000);
-        }, messageApi,()=>setState({...state,loading:false}));
+        }).then(res => {
+            if (res.ok) {
+                setState({ ...state, disabled: true });
+                messageApi.success(`${res.message}注册得到的账号${res.data},5秒内将自动返回`, 3000);
+                const timer = setTimeout(() => {
+                    back(null);
+                    clearTimeout(timer);
+                }, 5000);
+            }
+            else {
+                messageApi.error(res.message);
+            }
+        }).finally(() => {
+            setState({ ...state, loading: false });
+        });
     }
 
     function back(e: React.MouseEvent | null) {

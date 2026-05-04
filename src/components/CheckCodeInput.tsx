@@ -17,7 +17,13 @@ export function CheckCodeInput(props: CheckCodeInputProps) {
     let count = 60;
     function getCheckCode() {
         setHasGotCode(true);
-        CommonApi.getCheckCode(props.email ?? "", props.count ?? 0, () => {
+        CommonApi.getCheckCode(props.email ?? "", props.count ?? 0).then((res) => {
+            if(!res.ok){
+                messageApi.error(res.message);
+                setHasGotCode(false);
+                setCheckCodeText("获取验证码");
+                return;
+            }
             const timer = setInterval(() => {
                 if (count == 0) {
                     clearInterval(timer);
@@ -30,7 +36,7 @@ export function CheckCodeInput(props: CheckCodeInputProps) {
                     count--;
                 }
             }, 1000);
-        }, messageApi);
+        });
     }
 
     return (

@@ -110,7 +110,8 @@ export async function PatchAsync(url:string,data:any,config:AxiosRequestConfig){
 }
 
 export function Authorization(isFormData:boolean = false) {
-  const token = stateStroge.get("user").token;
+  const user = stateStroge.get("user");
+  const token = user == undefined ? "" : user.token;
   if(isFormData) {
     return {
       "Content-Type" : "multipart/form-data",

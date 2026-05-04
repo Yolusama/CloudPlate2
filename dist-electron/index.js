@@ -20,7 +20,7 @@ function assignEvents() {
     mainWindow.center();
   });
   ipcMain.on("setHomeSizeState", () => {
-    mainWindow.setSize(1e3, 720);
+    mainWindow.setSize(1200, 840);
     mainWindow.setResizable(true);
     mainWindow.setMinimumSize(500, 600);
     mainWindow.center();

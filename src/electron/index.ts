@@ -1,8 +1,16 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const { readFile, writeFile } = require('fs');
-const { join, resolve } = require('path');
 
-let mainWindow;
+import {readFile, writeFile } from 'fs';
+import {ipcMain} from 'electron';
+import {app, BrowserWindow} from 'electron';
+import * as path from 'path';
+
+
+interface TempFileData {
+  tempFileName: string;
+  data: File
+}
+
+let mainWindow:BrowserWindow;
 
 function assignEvents() {
   ipcMain.on('minimize', () => {
@@ -25,7 +33,7 @@ function assignEvents() {
   });
 
   ipcMain.on("setHomeSizeState", () => {
-    mainWindow.setSize(1200, 840);
+    mainWindow.setSize(1000, 720);
     mainWindow.setResizable(true);
     mainWindow.setMinimumSize(500, 600);
     mainWindow.center();
@@ -33,24 +41,26 @@ function assignEvents() {
 }
 
 function assignInvokeFuncs() {
-  ipcMain.handle("readTempFile", (event, arg) => {
+  ipcMain.handle("readTempFile", (event, arg: TempFileData) => {
     const tempFileName = arg.tempFileName;
     return new Promise((resolve, reject) => {
       readFile(`/data/temp/${tempFileName}`, (err, data) => {
-        if (err && err.cause)
+        if (err)
           reject(err);
         resolve(new Blob([data.buffer]));
       });
     })
   });
 
-  ipcMain.handle("writeTempFile", (event, arg) => {
+  ipcMain.handle("writeTempFile", (event, arg: TempFileData) => {
     const tempFileName = arg.tempFileName;
     return new Promise((resolve, reject) => {
       try {
         arg.data.arrayBuffer().then(res => {
-          writeFile(`/data/temp/${tempFileName}`,res);
-          resolve();
+          writeFile(`/data/temp/${tempFileName}`,Buffer.from(res), (err) => {
+            if (err) reject(err);
+            else resolve(res);
+          });
         });
       }
       catch (e) {
@@ -66,7 +76,7 @@ function createWindow() {
     height: 720,
     frame: false,
     webPreferences: {
-      preload: join(__dirname, 'preload.js'), // 预加载脚本
+      preload: path.join(__dirname, 'preload.js'), // 预加载脚本
       contextIsolation: true, // 启用上下文隔离
       nodeIntegration: false, // 禁用 Node.js 集成（安全推荐）
     },
@@ -80,7 +90,7 @@ function createWindow() {
     win.loadFile('../dist/index.html');
   }
 
-  win.on('closed', () => mainWindow = null);
+  win.on('closed', () => mainWindow.destroy());
   mainWindow = win;
   assignEvents();
   assignInvokeFuncs();

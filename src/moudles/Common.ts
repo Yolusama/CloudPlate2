@@ -8,7 +8,7 @@ export function copy(src: any, to: any) {
 export function delayToRun(func: () => void, expire: number) {
     const timer = setTimeout(() => {
         func();
-        clearInterval(timer);
+        clearTimeout(timer);
     }, expire);
 }
 
