@@ -18,8 +18,7 @@ public class FileInfo
     public bool DeleteFlag {get; set; }
     public DateTime? RecycleTime {get; set; }
     public DateTime? RecoverTime {get; set; }
-    [Column(DbType = "tinyint(1)",MapType = typeof(int))]
-    public FileType Type { get; set; }
+    public int? Type { get; set; }
     public string StoragePath {get; set;}
     public string IdentificationName {get; set;}
 }

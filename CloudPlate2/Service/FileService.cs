@@ -41,7 +41,7 @@ public class FileService
         {
            Name = file.FileName,
            Size = file.Length,
-           Type = fileType,
+           Type = (int)fileType,
            UploadTime = DateTime.Now,
            Pid = pid,
            Cover = Constants.GetFileCover(fileType),
@@ -107,7 +107,7 @@ public class FileService
                    UploadTime = DateTime.Now,
                    Pid = pid.Value,
                    Size = fileInfo.Length,
-                   Type = fileType,
+                   Type = (int)fileType,
                    Cover = Constants.GetFileCover(fileType),
                    IdentificationName = tempFileName,
                    StoragePath = stream.Name
@@ -136,7 +136,7 @@ public class FileService
             UploadTime = DateTime.Now,
             Pid = pid ?? -1,
             Size = 0,
-            Type = FileType.Folder,
+            Type = (int)FileType.Folder,
             Cover = Constants.GetFileCover(FileType.Folder),
             IdentificationName = randomId,
             StoragePath = dir.FullName

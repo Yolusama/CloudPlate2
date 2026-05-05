@@ -15,9 +15,9 @@ public class FileInfoService
         FileType _type;
         var values = Enum.GetValues<FileType>().Select(x => (int)x);
         var data =await freeSql.Select<FileInfoEntity>()
-            .WhereIf(Enum.TryParse(type, out _type) && _type!=FileType.File,f=>f.Type==_type)
+            .WhereIf(Enum.TryParse(type, out _type) && _type!=FileType.File,f=>f.Type==(int)_type)
             .WhereIf(Enum.TryParse(type, out _type)&&_type == FileType.File,
-                f=>values.Contains((int)f.Type))
+                f=>values.Contains(f.Type.Value))
             .WhereIf(!string.IsNullOrEmpty(search),f=>f.Name.Contains(search))
             .WhereIf(pid > 0, f => f.Pid == pid)
             .Where(f => f.UserId == userId && !f.DeleteFlag)
